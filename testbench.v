@@ -1,11 +1,12 @@
 `timescale 1ns/100ps
 
 module testbench;
+    parameter  DATA_DEPTH = 1024;
 
     reg clk;
     reg reset;
     reg core_reading;
-    reg [1023: 0][15: 0] data_frames_in;
+    reg [DATA_DEPTH - 1: 0][15: 0] data_frames_in;
     reg [15: 0]              core_ready;
     reg                    prog_loading;
     wire               frame_being_sent;
@@ -16,7 +17,9 @@ module testbench;
         #1 clk = ~clk;
 
 
-    scheduler scheduler (
+    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
+                .CORE_NUM(16),     .BUS_TO_CORE(32), .R0_DEPTH(8))    scheduler
+                        (
                          .clk             (             clk),
                          .reset           (           reset),
                          .core_ready      (      core_ready),
@@ -113,7 +116,7 @@ module testbench;
         //now 3 if: 48 instrs1
         data_frames_in[191: 144] = 768'h909349783518983001342480463695987813001572382692929389525816505418711888217498902051905706357098961069882743753078170660315226012310218614980287216204456170791124167120519739573313858667656760
 */
-//        data_frames_in[1023: 192] = 0;
+//        data_frames_in[DATA_DEPTH - 1: 192] = 0;
         #190;
         $finish;
 	end
