@@ -45,7 +45,7 @@ module testbench;
         #10;
         reset = 0;
         #10;
-        data_frames_in[0]  =  16'h0003;
+        data_frames_in[0]  =  16'h0043;  // new task must not start
         data_frames_in[1]  =  16'h000f;
         data_frames_in[2]  =  16'h000f;
 
@@ -73,7 +73,7 @@ module testbench;
             data_frames_in[i] = $random;
         end
 
-        data_frames_in[256]  =  16'h002f;
+        data_frames_in[256]  =  16'h008f;
         data_frames_in[257]  =  16'h0f00;
         data_frames_in[258]  =  16'h0f00;
 
@@ -101,6 +101,10 @@ module testbench;
         #2;
         core_ready = 16'hff0f;
 
+        #240;
+        core_ready = 16'hffff;
+        #2;
+        core_ready = 16'hff0f;
 
 /*
 
@@ -118,6 +122,8 @@ module testbench;
 */
 //        data_frames_in[DATA_DEPTH - 1: 192] = 0;
         #190;
+        #450;
+        #450;
         $finish;
 	end
 
