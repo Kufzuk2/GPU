@@ -5,6 +5,10 @@
 `define IFNUM_MASK 16'b0000000000111111
 `define FENCE (data_frames[global_tp] & 16'b0000000011000000) >> 6
 
+`define WAITING (((data_frames[global_tp + 1] & exec_mask) != 16'h0) || wait_it || \
+                ((data_frames[global_tp    ] & `FENCE_MASK) >> 6 == `FENCE_REL  && exec_mask)) 
+
+
 module scheduler
 #(
     parameter  DATA_DEPTH = 1024,
@@ -40,40 +44,20 @@ module scheduler
 
     reg [ 5: 0]    if_num;
     reg [ 9: 0] global_tp;   // [3:0] = tp, [9:4] = frame
-    reg [ 1: 0]     fence;   // barrier
-    wire          waiting;
+    reg [ 1: 0]     fence;   // barrier . will be deleted. Now needed only for easy testing
     reg           wait_it;
 
-    integer i;
+    integer i; // chacnge for a smaller reg???
     integer k;
 
 
-/*
-    //fence
-    always @(posedge clk) begin //if_num == 0
-        if (fence == 0) begin
-            waiting <= (exec_mask & data_frames[global_tp + 1]) == 0 ? 0 : 1;
-
-        end else if (fence == 2'h1) begin
-            waiting <= (exec_mask & last_mask) == 0 ? 0 : 1;
-
-        end else if (fence == 2'h2) begin
-            waiting <= (exec_mask == 0) ? 0 : 1;
-        end // else will mean to save previous cond or better -> 0
-    end
-*/
-
-//    assign fence0  = exec_mask & data_frames[global_tp + 1] != 0;
-    assign fence2  = (data_frames[global_tp] & `FENCE_MASK) == 2'h2 && !exec_mask;
-    assign waiting = wait_it || fence2;
-
-//    assign waiting = (!if_num && ( !(exec_mask & data_frames[global_tp + 1]) || (wait_it && exec_mask & last_mask) || ((data_frames[global_tp] & `FENCE_MASK == 2'h2) && exec_mask == 0) )  ) ? 0: 1;
     
     always @(posedge clk) begin
         if (!(last_mask & exec_mask)) begin
             wait_it <= 0;
         end
     end
+
 
     always @(posedge clk) begin
 
@@ -92,10 +76,7 @@ module scheduler
 
             if (if_num == 0) begin
                 
-
-                if (!(((data_frames[global_tp + 1] & exec_mask) != 16'h0) || wait_it ||   // need macros
-                      ((data_frames[global_tp    ] & `FENCE_MASK) >> 6 == `FENCE_REL  && exec_mask)
-                    )) begin 
+                if (!(`WAITING)) begin
                     fence        <= (data_frames[global_tp    ] & `FENCE_MASK) >> 6;
                     if_num       <=  data_frames[global_tp    ] & `IFNUM_MASK; 
                     init_r0_vect <=  data_frames[global_tp + 2];
@@ -113,7 +94,7 @@ module scheduler
                         wait_it <= 1;
                     end
 
-                    global_tp <= global_tp + 10'h10;   // === global tp += 10'd16
+                    global_tp <= global_tp + 10'h10;  
                 end 
 
             end else if (core_reading) begin
