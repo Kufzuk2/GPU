@@ -17,8 +17,8 @@ module testbench;
         #1 clk = ~clk;
 
 
-    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
-                .CORE_NUM(16),     .BUS_TO_CORE(32), .R0_DEPTH(8))    scheduler
+    new_sched #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
+                .CORE_NUM(16),     .BUS_TO_CORE(32), .R0_DEPTH(8))    new_sched
                         (
                          .clk             (             clk),
                          .reset           (           reset),
