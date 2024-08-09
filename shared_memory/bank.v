@@ -13,20 +13,17 @@ module bank (
 );
 
 reg [7:0] mem [255:0];  // bank memory
-reg [7:0] tmp_data;    // temporary data register
 
-always @(posedge clock && write) begin
-	mem[addr_in] <= data_in;
-end
-
-always @(posedge clock && read) begin
-	tmp_data <= mem[addr_in];
+always @(posedge clock) begin
+	mem[addr_in] <= write ? data_in : mem[addr_in];
 end
 
 always @(posedge clock) begin
-	finish <= ((read || write) && !reset) ? 1'b1 : 1'b0;
+	data_out <= read ? mem[addr_in] : 'hz;
 end
 
-assign data_out = read ? tmp_data : 'hz;
+always @(posedge clock) begin
+	finish <= !reset && (write || read) ? 1'b1 : 1'b0;
+end
 
 endmodule
