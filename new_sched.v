@@ -1,4 +1,5 @@
 `include "gpu_def.v"
+`include "sched_func.v"
 
 `define SCHED_FENCE (data_frames[global_tp] & 16'b0000000011000000) >> 6
 
@@ -6,6 +7,8 @@
                 ((data_frames[global_tp    ] & `SCHED_FENCE_MASK) >> 6 == `SCHED_FENCE_REL  && exec_mask)) 
 
 //TODO     send r0 data + core and r0 mask
+// move waiting earlier
+// remove tp && tp + 1 && tp + 2 at the same time
 module new_sched
 #(
     parameter  DATA_DEPTH = 1024,
@@ -45,6 +48,7 @@ module new_sched
     reg [ 9: 0] global_tp;   // [3:0] = tp, [9:4] = frame //
     reg [ 1: 0]     fence;   // barrier . will be deleted. Now needed only for easy testing
     reg           wait_it;//
+    reg         r0_loaded;
 
     integer i; // chacnge for a smaller reg???
     integer k;
@@ -53,7 +57,7 @@ module new_sched
 
     assign exec_mask2 = ~core_ready;
 
-
+    sched_funcs sched_funcs();
     
 
 /// fence/init_r0_vect/last_mask   reg  logic
@@ -63,9 +67,12 @@ module new_sched
            fence     <= 0;
         end 
 
-        else if (!prog_loading && if_num == 0 &&  !(`WAITING)) begin
+        else if (!prog_loading && if_num == 0 && 
+                !(sched_funcs.waiting(data_frames[global_tp], 
+                                      data_frames[global_tp + 1], 
+                                      exec_mask, wait_it)))    begin
+
             fence        <= (data_frames[global_tp    ] & `SCHED_FENCE_MASK) >> 6;
-            init_r0_vect <=  data_frames[global_tp + 2];
             last_mask    <=  data_frames[global_tp + 1];
         end
     end
@@ -81,12 +88,30 @@ module new_sched
             mess_to_core[31: 16] <= data_frames[global_tp + 1]; //delete it, just change gp
             global_tp <= global_tp + 2; 
             */ // return later, temporally changed
-            
             tmp_mess_to_core[15: 0] <= data_frames[global_tp];
-        end
 
+        end else if (!prog_loading && core_reading && if_num == 0) begin
+
+            tmp_mess_to_core[15: 0] <= data_frames[global_tp + 2];
+
+            for (i = 0; i < 16; i = i + 1) begin
+                if (init_r0_vect[i])
+                    tmp_mess_to_core[i] <= data_frames[global_tp + i + 16]; 
+            end
+        end
+    end
+    
+
+    /// r0_loaded reg logic
+    always @(posedge clk) begin
+        if (!prog_loading && core_reading && if_num != 0 && i == 15) 
+            r0_loaded <= 1;
+
+        else if (!prog_loading && global_tp[3: 0] == 4'b1111)  // must be enough condition. must be checked
+            r0_loaded <= 0;
 
     end
+
 
 
 /// global_tp  reg  logic
@@ -111,7 +136,7 @@ module new_sched
                       core_reading && global_tp[3: 0] == 4'b1111) begin  // must be 0000, but not enough time then
             if_num <= if_num - 1;
 
-        end else if (!prog_loading && if_num == 0 && !(`WAITING)) begin
+        end else if (!prog_loading && if_num == 0 && !(`WAITING) && r0_loaded) begin
             if_num <= data_frames[global_tp] & `SCHED_IFNUM_MASK; 
         end
     end
