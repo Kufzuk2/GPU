@@ -15,10 +15,13 @@ module testbench;
 
     always 
         #1 clk = ~clk;
-
+/*
+    always
+        #3 core_reading = $random; 
+*/
 
     new_sched #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
-                .CORE_NUM(16),     .BUS_TO_CORE(32), .R0_DEPTH(8))    new_sched
+                .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    new_sched
                         (
                          .clk             (             clk),
                          .reset           (           reset),
@@ -66,14 +69,14 @@ module testbench;
 
 
         data_frames_in[128]  =  16'h0007;
-        data_frames_in[129]  =  16'h00f0;
+        data_frames_in[129]  =  16'h00f0; // cllision of masks, must wait
         data_frames_in[130]  =  16'h00f0;
 
         for (i = 131; i < 256; i = i + 1) begin
             data_frames_in[i] = $random;
         end
 
-        data_frames_in[256]  =  16'h008f;
+        data_frames_in[256]  =  16'h008f;  // must not start before every core is free
         data_frames_in[257]  =  16'h0f00;
         data_frames_in[258]  =  16'h0f00;
 
@@ -85,11 +88,13 @@ module testbench;
 
         #10;
         prog_loading = 0;
+
+        #20;
         core_ready   = 16'hfff0;
 
         #35;
 
-        #65;
+        #85;
         core_ready = 16'hff00;
 
         #60; // 190
@@ -98,7 +103,7 @@ module testbench;
         #450;
         core_ready = 16'hffff;
 
-        #2;
+        #12;
         core_ready = 16'hff0f;
 
         #240;
@@ -106,6 +111,8 @@ module testbench;
         #2;
         core_ready = 16'hff0f;
 
+        #340;
+        core_ready = 16'hffff;
 /*
 
 /*
