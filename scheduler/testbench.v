@@ -20,8 +20,8 @@ module testbench;
         #3 core_reading = $random; 
 */
 
-    new_sched #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
-                .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    new_sched
+    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
+                .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    scheduler
                         (
                          .clk             (             clk),
                          .reset           (           reset),
