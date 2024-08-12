@@ -19,7 +19,14 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
-	data_out <= read ? mem[addr_in] : 'hz;
+	casex(read)
+		1'b0:
+			data_out <= 8'hx;
+		1'b1:
+			data_out <= mem[addr_in];
+		default:
+			data_out <= 8'hx;
+	endcase
 end
 
 always @(posedge clock) begin
