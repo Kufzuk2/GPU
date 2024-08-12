@@ -45,6 +45,8 @@ module scheduler
     reg no_collision;
     reg rel_stop;
     reg wait_not;
+    /// temporal regs for testing
+
 
     wire flag1;
     wire flag2;
@@ -69,6 +71,8 @@ module scheduler
 
         else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'h0)
             fence <= (data_frames[global_tp] & `SCHED_FENCE_MASK) >> 6;
+        else 
+            fence <= fence;
     end
 
 /// last_mask   reg  logic
@@ -78,6 +82,8 @@ module scheduler
 
         else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 1)  
             last_mask <= data_frames[global_tp];
+        else 
+            last_mask <= last_mask;
     end
 
 
@@ -89,6 +95,9 @@ module scheduler
 
         else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 2 && core_reading)  
             init_r0_vect <= data_frames[global_tp];
+        
+        else 
+            init_r0_vect <= init_r0_vect;
     end
 
 
@@ -110,6 +119,8 @@ module scheduler
         else if (!prog_loading && core_reading /*&& if_num == 0*/ 
                 && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
                     mess_to_core[15: 0] <= data_frames[global_tp]; 
+        else 
+            mess_to_core <= mess_to_core;
     end
     
 // seems may be deleted
@@ -122,6 +133,8 @@ module scheduler
 
         else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 1)  // must be enough condition. must be checked
             r0_loaded <= 0;
+        else
+            r0_loaded <= r0_loaded;
     end
 
 
@@ -162,6 +175,9 @@ module scheduler
         else if (!prog_loading && core_reading && (if_num != 0 || global_tp[3: 0] != 2)
                  && !(if_num == 1 && global_tp[3: 0] == 4'hf && wait_it && (last_mask & exec_mask != 0))) 
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
+
+        else 
+            global_tp <= global_tp;
     end // must work as for r0 load as for instr mes
 
 
@@ -178,7 +194,8 @@ module scheduler
         end else if (!prog_loading && if_num == 0  
                                    && global_tp[3: 0] == 4'b1111) begin
             if_num <= data_frames[global_tp - 10'hf] & `SCHED_IFNUM_MASK; 
-        end
+        end else
+            if_num <= if_num;
     end
 
 
@@ -193,6 +210,8 @@ module scheduler
 
         else if (if_num == 0 && global_tp[3:0] == 0)
             wait_it <= 0;
+        else
+            wait_it <= wait_it;
     end
 
 
