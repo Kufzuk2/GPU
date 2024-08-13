@@ -16,3 +16,24 @@
 `define OPCODE_ST_SYNC       4'hD   // аналогично операции st, с аппаратной разблокировкой
 `define OPCODE_BNZ           4'hE   // if(src0 != 0) IP ← target[3:0] * instr_size else IP ← IP + instr_size
 `define OPCODE_READY         4'hF   // IP<-0; конец работы ядра (выдача сигнала READY в Task Scheduler)
+
+
+
+
+
+`define R0 4'h0
+`define R1 4'h1
+`define R2 4'h2
+`define R3 4'h3
+`define R4 4'h4
+`define R5 4'h5
+`define R6 4'h6
+`define R7 4'h7
+`define R8 4'h8
+`define R9 4'h9
+`define R10 4'hA
+`define R11 4'hB
+`define R12 4'hC
+`define R13 4'hD
+`define R14 4'hE
+`define R15 4'hF
