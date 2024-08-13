@@ -20,7 +20,7 @@ module testbench;
         #3 core_reading = $random; 
 */
 
-    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), 
+    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), .FRAME_NUM(64),
                 .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    scheduler
                         (
                          .clk             (             clk),
