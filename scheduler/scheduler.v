@@ -5,12 +5,13 @@
 // remove tp && tp + 1 && tp + 2 at the same time
 module scheduler
 #(
-    parameter  DATA_DEPTH = 1024,
-    parameter  INSTR_SIZE =   16,
-    parameter  FRAME_SIZE =   16,
-    parameter    CORE_NUM =   16,
-    parameter BUS_TO_CORE =   16,
-    parameter    R0_DEPTH =    8
+    parameter  DATA_DEPTH  = 1024,
+    parameter  INSTR_SIZE  =   16,
+    parameter  FRAME_SIZE  =   16,
+    parameter   FRAME_NUM  =   64,
+    parameter    CORE_NUM  =   16,
+    parameter BUS_TO_CORE  =   16,
+    parameter    R0_DEPTH  =    8
 )
 // Resolution and refresh rate  
     
@@ -30,6 +31,11 @@ module scheduler
 );
 
     reg [INSTR_SIZE - 1: 0] data_frames [DATA_DEPTH - 1: 0];   // better change type of memory later
+    
+    wire [INSTR_SIZE - 1: 0] data_frames2 [DATA_DEPTH - 1: 0];   // better change type of memory later
+    wire [FRAME_NUM -1: 0] cur_frame;
+
+
 
     reg [CORE_NUM    - 1: 0]                  init_r0_vect;    // only new  data, old not considered here
 //    reg [CORE_NUM   - 1: 0]                      exec_mask;//
