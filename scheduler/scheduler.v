@@ -25,8 +25,12 @@ module scheduler
     input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
     input  wire [CORE_NUM    - 1: 0]                        core_ready,  // may be better reverse it
     
-    output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core  //
+    output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
 
+    output reg         r0_loading,
+    output reg         if_loading,
+    output reg  core_mask_loading,
+    output reg    r0_mask_loading
 //change for wires where possible
 );
 
@@ -46,7 +50,6 @@ module scheduler
     reg [ 9: 0] global_tp;   // [3:0] = tp, [9:4] = frame //
     reg [ 1: 0]     fence;   // barrier . will be deleted. Now needed only for easy testing
     reg           wait_it;//
-    reg         r0_loaded;
 
     reg no_collision;
     reg rel_stop;
@@ -121,6 +124,7 @@ module scheduler
         end else if (!prog_loading && core_reading && if_num == 0 && 
                       global_tp[3: 0] == 2) 
             mess_to_core[15: 0] <= data_frames[global_tp];
+        
 
         else if (!prog_loading && core_reading /*&& if_num == 0*/ 
                 && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
@@ -129,19 +133,50 @@ module scheduler
             mess_to_core <= mess_to_core;
     end
     
-// seems may be deleted
-    /// r0_loaded reg logic
+/*
+    /// r0_loading reg logic
     always @(posedge clk) begin
         if (reset)
-            r0_loaded <= 0;
+            r0_loading <= 0;
+        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 2)
+            r0_loading <= 1;
+
+        else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 0)  // must be enough condition. must be checked
+            r0_loading <= 0;
+        else
+            r0_loading <= r0_loading;
+    end
+
+    
+    /// if_loading reg logic
+    always @(posedge clk) begin
+        if (reset)
+            if_loading <= 0;
         else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
-            r0_loaded <= 1;
+            if_loading <= 1;
 
         else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 1)  // must be enough condition. must be checked
-            r0_loaded <= 0;
+            if_loading <= 1;
         else
-            r0_loaded <= r0_loaded;
+            if_loading <= if_loading;
     end
+
+    /// mask1_loading reg logic
+    always @(posedge clk) begin
+        if (reset)
+            core_mask_loading <= 0;
+        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
+            core_mask_loading <= 1;
+
+        else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 1)  // must be enough condition. must be checked
+            core_mask_loading <= 1;
+        else
+            core_mask_loading <= if_loading;
+    end
+
+    /// mask_loading
+
+*/
 
 
     always @(posedge clk) begin

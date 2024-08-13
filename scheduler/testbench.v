@@ -12,6 +12,9 @@ module testbench;
     wire               frame_being_sent;
     integer i; 
     
+    integer file;
+    integer status;
+    reg [15:0] instruction;     
 
     always 
         #1 clk = ~clk;
@@ -19,6 +22,19 @@ module testbench;
     always
         #3 core_reading = $random; 
 */
+
+
+ task send_tm_line(input [15:0] instruction, input integer j);
+        begin
+            // Проверка на допустимый индекс
+            if (j >= 0 && j <= 1023) begin
+                data_frames[j] = instruction; // Запись инструкции в массив
+            end else begin
+                $display("Ошибка: индекс вне диапазона!");
+            end
+        end
+    endtask
+
 
     scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), .FRAME_NUM(64),
                 .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    scheduler
@@ -32,7 +48,12 @@ module testbench;
                          .frame_being_sent(frame_being_sent)
 
     );
-    
+    /*
+initial begin
+        // Загрузка данных из hex-файла
+        $readmemh("task_memory.hex", data_frames_in);
+    end
+*/
 
     initial begin
         clk          <= 0;
@@ -40,6 +61,28 @@ module testbench;
         core_ready   <= 16'hffff;
         core_reading <= 1;
         prog_loading <= 1;
+
+        file = $fopen("instructions.txt", "r");
+        if (file == 0) begin
+            $display("Ошибка: не удалось открыть файл!");
+            $finish;
+        end
+
+        // Чтение инструкций из файла и загрузка в массив
+        for (i = 0; i < 1024; i = i + 1) begin
+            status = $fscanf(file, "%h\n", instruction); // Чтение 16-битной инструкции в шестнадцатеричном формате
+            
+            if (status != 1) begin
+                $display("Ошибка: не удалось прочитать инструкцию %0d.", i);
+                $finish;
+            end
+            
+            send_tm_line(instruction, i); // Загружаем инструкцию в массив
+        end
+
+        // Закрытие файла после чтения
+        $fclose(file);
+
 
     end
 
