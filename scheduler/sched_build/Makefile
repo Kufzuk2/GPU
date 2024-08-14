@@ -1,5 +1,5 @@
 all:
-	iverilog ../testbench.v ../new_sched.v ../gpu_def.v ../sched_func.v -o ex.out
+	iverilog ../testbench.v ../scheduler.v  -o ex.out
 	vvp ex.out
 	gtkwave dump.vcd
 git:

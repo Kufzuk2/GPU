@@ -23,21 +23,20 @@ module testbench;
         #3 core_reading = $random; 
 */
 
-
  task send_tm_line(input [15:0] instruction, input integer j);
         begin
             // Проверка на допустимый индекс
             if (j >= 0 && j <= 1023) begin
-                data_frames[j] = instruction; // Запись инструкции в массив
+                data_frames_in[j] = instruction; // Запись инструкции в массив
             end else begin
                 $display("Ошибка: индекс вне диапазона!");
             end
         end
     endtask
 
-
-    scheduler #(.DATA_DEPTH(1024), .INSTR_SIZE(16),  .FRAME_SIZE(16), .FRAME_NUM(64),
-                .CORE_NUM(16),     .BUS_TO_CORE(16), .R0_DEPTH(8))    scheduler
+    scheduler #(.DATA_DEPTH(1024), .R0_DATA_SIZE(128), .CTRL_DATA_SIZE(48), 
+                .INSTR_SIZE(16),   .FRAME_SIZE(16),    .FRAME_NUM(64),
+                .CORE_NUM(16),     .BUS_TO_CORE(16),   .R0_DEPTH(8))    scheduler
                         (
                          .clk             (             clk),
                          .reset           (           reset),
@@ -61,7 +60,7 @@ initial begin
         core_ready   <= 16'hffff;
         core_reading <= 1;
         prog_loading <= 1;
-
+/*
         file = $fopen("instructions.txt", "r");
         if (file == 0) begin
             $display("Ошибка: не удалось открыть файл!");
@@ -82,7 +81,7 @@ initial begin
 
         // Закрытие файла после чтения
         $fclose(file);
-
+*/
 
     end
 

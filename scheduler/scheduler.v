@@ -1,17 +1,19 @@
-`include "gpu_def.v"
+`include "../gpu_def.v"
 
 //TODO     send r0 data + core and r0 mask
 // move waiting earlier
 // remove tp && tp + 1 && tp + 2 at the same time
 module scheduler
 #(
-    parameter  DATA_DEPTH  = 1024,
-    parameter  INSTR_SIZE  =   16,
-    parameter  FRAME_SIZE  =   16,
-    parameter   FRAME_NUM  =   64,
-    parameter    CORE_NUM  =   16,
-    parameter BUS_TO_CORE  =   16,
-    parameter    R0_DEPTH  =    8
+    parameter     DATA_DEPTH  = 1024,
+    parameter   R0_DATA_SIZE  =  128,  
+    parameter CTRL_DATA_SIZE  =   48,  
+    parameter     INSTR_SIZE  =   16,
+    parameter     FRAME_SIZE  =   16,
+    parameter      FRAME_NUM  =   64,
+    parameter       CORE_NUM  =   16,
+    parameter    BUS_TO_CORE  =   16,
+    parameter       R0_DEPTH  =    8
 )
 // Resolution and refresh rate  
     
@@ -36,13 +38,32 @@ module scheduler
 
     reg [INSTR_SIZE - 1: 0] data_frames [DATA_DEPTH - 1: 0];   // better change type of memory later
     
-    wire [INSTR_SIZE - 1: 0] data_frames2 [DATA_DEPTH - 1: 0];   // better change type of memory later
-    wire [FRAME_NUM -1: 0] cur_frame;
+    wire [FRAME_NUM      - 1: 0]  cur_frame;
+    wire [R0_DATA_SIZE   - 1: 0]  cur_r0_data;
+    wire [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data;
 
+    reg [FRAME_NUM      - 1: 0]  cur_frame1;
+    reg [R0_DATA_SIZE   - 1: 0]  cur_r0_data1;
+    reg [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data1;
+
+
+    always @(posedge clk) begin
+    cur_frame1 <= cur_frame;
+    cur_r0_data1 <= cur_r0_data;    
+    cur_ctrl_data1 <= cur_ctrl_data;    
+
+
+
+    end
+
+
+
+    assign cur_frame     = data_frames[global_tp];
+    assign cur_r0_data   =  cur_frame [global_tp];
+    assign cur_ctrl_data =  cur_frame [global_tp];
 
 
     reg [CORE_NUM    - 1: 0]                  init_r0_vect;    // only new  data, old not considered here
-//    reg [CORE_NUM   - 1: 0]                      exec_mask;//
     reg [CORE_NUM   - 1: 0]                      last_mask;  // cores used by the latest task//
     wire [CORE_NUM   - 1: 0]                     exec_mask;
 
