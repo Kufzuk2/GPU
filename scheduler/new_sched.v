@@ -10,7 +10,7 @@ module new_sched
     parameter   R0_DATA_SIZE  =  128,  
     parameter CTRL_DATA_SIZE  =   48,  
     parameter     INSTR_SIZE  =   16,
-    parameter     FRAME_SIZE  =   16,
+    parameter     FRAME_SIZE  =  256,
     parameter      FRAME_NUM  =   64,
     parameter       CORE_NUM  =   16,
     parameter    BUS_TO_CORE  =   16,
@@ -39,45 +39,31 @@ module new_sched
 
     reg [INSTR_SIZE - 1: 0] data_frames [DATA_DEPTH - 1: 0];   // better change type of memory later
     
-    wire [FRAME_NUM      - 1: 0]  cur_frame;
+    wire [FRAME_SIZE      - 1: 0]  cur_frame;
     wire [R0_DATA_SIZE   - 1: 0]  cur_r0_data;
     wire [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data;
-
-    reg [FRAME_NUM      - 1: 0]  cur_frame1;
+/*
+    reg [INSTR_SIZE     - 1: 0]  cur_frame1;
     reg [R0_DATA_SIZE   - 1: 0]  cur_r0_data1;
     reg [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data1;
-
-
-    always @(posedge clk) begin
-    cur_frame1 <= cur_frame;
-    cur_r0_data1 <= cur_r0_data;    
-    cur_ctrl_data1 <= cur_ctrl_data;    
-
-
-
-    end
-
-
-
-    assign cur_frame     = data_frames[global_tp];
-    assign cur_r0_data   =  cur_frame [global_tp];
-    assign cur_ctrl_data =  cur_frame [global_tp];
+*/
 
 
     reg [CORE_NUM    - 1: 0]                  init_r0_vect;    // only new  data, old not considered here
     reg [CORE_NUM   - 1: 0]                      last_mask;  // cores used by the latest task//
     wire [CORE_NUM   - 1: 0]                     exec_mask;
 
-    reg [ 5: 0]    if_num;//
-    reg [ 9: 0] global_tp;   // [3:0] = tp, [9:4] = frame //
-    reg [ 1: 0]     fence;   // barrier . will be deleted. Now needed only for easy testing
-    reg           wait_it;//
+    reg [ 5: 0]      if_num;//
+    reg [ 5: 0] next_if_num;//
+    reg [ 9: 0]   global_tp;   // [3:0] = tp, [9:4] = frame //
+    reg [ 1: 0]       fence;   // barrier . will be deleted. Now needed only for easy testing
+    reg             wait_it;//
 
     reg no_collision;
     reg rel_stop;
     reg wait_not;
+    reg cf;
     /// temporal regs for testing
-
 
     wire flag1;
     wire flag2;
@@ -86,14 +72,52 @@ module new_sched
     integer k;
     integer j;
 
+
+    assign cur_frame     = data_frames[global_tp];  //не слишком ли много бесполезных проводов будет? 
+/*
+    assign cur_frame     = data_frames[global_tp + FRAME_SIZE - 1: global_tp];  //не слишком ли много бесполезных проводов будет? 
+                                                                                //или логическим выражением сделать так, чтобы это работало только при CF???
+  */  
+    
+   
+    wire [INSTR_SIZE - 1: 0] ctrl_data [                 2: 0]; 
+    wire [INSTR_SIZE - 1: 0]   r0_data [INSTR_SIZE / 2 - 1: 0]; 
+
+    reg [INSTR_SIZE - 1: 0] ctrl_data1 [                 2: 0]; 
+    reg [INSTR_SIZE - 1: 0]   r0_data1 [INSTR_SIZE / 2 - 1: 0]; 
+
+    genvar a;
+    generate
+        for (a = 0; a < 3; a = a + 1) begin
+            assign ctrl_data[a] = data_frames[global_tp + a];
+        end
+        
+        for (a = 0; a < 8; a = a + 1) begin
+            assign r0_data[a] = data_frames[global_tp + a + 8];
+        end
+    endgenerate
+
+/*
+    assign cur_r0_data   =  cur_frames [10: 11 - INSTR_SIZE / 2];
+    assign cur_ctrl_data =  cur_frames [2: 0];
+*/
+
+    wire [INSTR_SIZE - 1: 0] last_mask_w;
+    wire [             1: 0] fence_w;
+    
+    assign last_mask_w  =  ctrl_data[1];
+    assign fence_w      = (ctrl_data[0] & `SCHED_FENCE_MASK) >> 6;
+
+
+
+    // rewrire with wires only
     assign flag1 = ((last_mask & exec_mask == 0) || (exec_mask == 0)); 
     assign flag2     = !((fence == `SCHED_FENCE_REL) && exec_mask);
 
     assign no_wait_cf = flag1 & flag2;
-
     assign exec_mask = ~core_ready;
-
     
+
 
 /// fence   reg  logic
     always @(posedge clk) begin
@@ -101,7 +125,7 @@ module new_sched
            fence <= 0;
 
         else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'h0)
-            fence <= (data_frames[global_tp] & `SCHED_FENCE_MASK) >> 6;
+            fence <= fence_w;
         else 
             fence <= fence;
     end
@@ -111,8 +135,8 @@ module new_sched
         if (reset)
            last_mask <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 1)  
-            last_mask <= data_frames[global_tp];
+        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0)  
+            last_mask <= last_mask_w;
         else 
             last_mask <= last_mask;
     end
@@ -124,8 +148,8 @@ module new_sched
         if (reset)
            init_r0_vect <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 2 && core_reading)  
-            init_r0_vect <= data_frames[global_tp];
+        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0 && core_reading)  
+            init_r0_vect <= ctrl_data[2];
         
         else 
             init_r0_vect <= init_r0_vect;
@@ -139,18 +163,18 @@ module new_sched
         if (reset)
             mess_to_core <= 0;
 
-        else if (!prog_loading && core_reading && if_num != 0) begin // also was !waiting, but i suppose its useless here
+        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
 
-            mess_to_core[15: 0] <= data_frames[global_tp];
+            mess_to_core[15: 0] <= last_mask;
 
-        end else if (!prog_loading && core_reading && if_num == 0 && 
+        else if (!prog_loading && core_reading && if_num == 0 && 
                       global_tp[3: 0] == 2) 
-            mess_to_core[15: 0] <= data_frames[global_tp];
+            mess_to_core[15: 0] <= init_r0_vect;
         
 
         else if (!prog_loading && core_reading /*&& if_num == 0*/ 
                 && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
-                    mess_to_core[15: 0] <= data_frames[global_tp]; 
+                    mess_to_core[15: 0] <= r0_data[global_tp[3: 0]]; 
         else 
             mess_to_core <= mess_to_core;
     end
@@ -227,7 +251,7 @@ module new_sched
         if (reset)
            global_tp <= 0;
         
-        else if ((!prog_loading) && (if_num == 0) && global_tp[3: 0] == 2 && core_reading &&
+        else if ((!prog_loading) && if_num == 0 && global_tp[3: 0] == 2 && core_reading &&
            /* ((last_mask & exec_mask == 0) || (exec_mask == 0)) && !((fence == `SCHED_FENCE_REL) && exec_mask)) */
            no_wait_cf)
             //gtp == 2 => jump to 16   // AB + ~B  == A + ~B
@@ -250,17 +274,47 @@ module new_sched
            if_num <= 0;
 
         end else if (!prog_loading && if_num && 
-                      core_reading && global_tp[3: 0] == 4'b1111 
+                      /*core_reading &&*/ global_tp[3: 0] == 4'b1111 
                       && (if_num != 1  || !(wait_it && (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
             if_num <= if_num - 1;
 
-        end else if (!prog_loading && if_num == 0  
-                                   && global_tp[3: 0] == 4'b1111) begin
-            if_num <= data_frames[global_tp - 10'hf] & `SCHED_IFNUM_MASK; 
-        end else
+        end else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
+            if_num <= next_if_num;
+
+        else
             if_num <= if_num;
     end
 
+
+
+/// next_if_num  reg  logic
+    always @(posedge clk) begin
+        if (reset) begin
+           next_if_num <= 0;
+        
+       end else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0)
+            next_if_num <= ctrl_data[0] & `SCHED_IFNUM_MASK;
+
+        else
+            next_if_num <= next_if_num;
+    end
+
+    /// cf reg logic
+    always @(posedge clk) begin
+        if (reset) begin
+           cf <= 1;
+
+        end else if (!prog_loading && if_num == 0 && 
+                      core_reading && global_tp[3: 0] == 4'b1111 
+                      && !(wait_it && (last_mask & exec_mask != 0))) begin  // must be 0000, but not enough time then
+            cf <= 1;
+
+        end else if (!prog_loading && if_num == 1  
+                                   && global_tp[3: 0] == 4'b1111) begin
+            cf <= 0;
+        end else
+            cf <= cf;
+        end
 
     /// wait_it   reg  logic
     always @(posedge clk) begin
@@ -268,7 +322,7 @@ module new_sched
            wait_it <= 0;
                     
         else if (!prog_loading && if_num == 0 && global_tp == 1 &&
-            (fence == `SCHED_FENCE_ACQ))
+            (fence == `SCHED_FENCE_ACQ)) // may be better delete it
             wait_it <= 1;
 
         else if (if_num == 0 && global_tp[3:0] == 0)

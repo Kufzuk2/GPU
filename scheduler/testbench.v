@@ -34,9 +34,9 @@ module testbench;
         end
     endtask
 
-    scheduler #(.DATA_DEPTH(1024), .R0_DATA_SIZE(128), .CTRL_DATA_SIZE(48), 
-                .INSTR_SIZE(16),   .FRAME_SIZE(16),    .FRAME_NUM(64),
-                .CORE_NUM(16),     .BUS_TO_CORE(16),   .R0_DEPTH(8))    scheduler
+    new_sched #(.DATA_DEPTH(1024), .R0_DATA_SIZE(128), .CTRL_DATA_SIZE(48), 
+                .INSTR_SIZE(16),   .FRAME_SIZE(256),    .FRAME_NUM(64),
+                .CORE_NUM(16),     .BUS_TO_CORE(16),   .R0_DEPTH(8))    new_sched
                         (
                          .clk             (             clk),
                          .reset           (           reset),
