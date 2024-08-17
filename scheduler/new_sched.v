@@ -71,17 +71,14 @@ module new_sched
     wire [INSTR_SIZE - 1: 0] last_mask_w;
     wire [             1: 0]     fence_w;
     
-    assign last_mask_w  =  cur_frame[1];
-    assign fence_w      = (cur_frame[0] & `SCHED_FENCE_MASK) >> 6;
+    assign last_mask_w  =   cur_frame[1];
+    assign fence_w      =  (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
 
-
-
-    // rewrire with wires only
     assign flag1 = ((last_mask_w & exec_mask == 0) || (exec_mask == 0)); 
     assign flag2 =        !((fence_w == `SCHED_FENCE_REL) && exec_mask);
 
-    assign no_wait_cf = flag1 & flag2;
-    assign exec_mask = ~core_ready;
+    assign no_wait_cf   =  flag1 & flag2;
+    assign exec_mask    =    ~core_ready;
     
 
 
@@ -90,21 +87,20 @@ module new_sched
         if (reset)
            fence <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'h0)
-            fence <= fence_w;
-        else 
-            fence <= fence;
+        else
+            fence <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0) ?
+            fence_w  :  fence;        
     end
+
 
 /// last_mask   reg  logic
     always @(posedge clk) begin
         if (reset)
            last_mask <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0)  
-            last_mask <= last_mask_w;
-        else 
-            last_mask <= last_mask;
+        else
+            last_mask <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0) ?
+            last_mask_w : last_mask;
     end
 
 
@@ -114,11 +110,9 @@ module new_sched
         if (reset)
            init_r0_vect <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0 && core_reading)  
-            init_r0_vect <= cur_frame[2];
-        
-        else 
-            init_r0_vect <= init_r0_vect;
+        else
+            init_r0_vect <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0 && core_reading) ?
+            cur_frame[2] : init_r0_vect;
     end
 
 
@@ -128,6 +122,13 @@ module new_sched
     always @(posedge clk) begin
         if (reset)
             mess_to_core <= 0;
+
+        else 
+            mess_to_core <= (!prog_loading & core_reading) :
+            
+
+
+
 
         else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
 
@@ -292,6 +293,27 @@ module new_sched
 
     endmodule
 
+/*
+/// mess_to_core    reg  logic
+    always @(posedge clk) begin
+        if (reset)
+            mess_to_core <= 0;
+
+        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
+
+            mess_to_core[15: 0] <= last_mask;
+
+        else if (!prog_loading && core_reading && if_num == 0 && 
+                      global_tp[3: 0] == 2) 
+            mess_to_core[15: 0] <= init_r0_vect;
+        
+
+        else if (!prog_loading && core_reading  
+                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
+                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
+        else 
+            mess_to_core <= mess_to_core;
+    end
 
 
 
@@ -299,5 +321,4 @@ module new_sched
 
 
 
-
-
+*/
