@@ -35,7 +35,7 @@ module testbench;
     endtask
 
     new_sched #(.DATA_DEPTH(1024), .R0_DATA_SIZE(128), .CTRL_DATA_SIZE(48), 
-                .INSTR_SIZE(16),   .FRAME_SIZE(256),    .FRAME_NUM(64),
+                .INSTR_SIZE(16),   .FRAME_SIZE(256),   .FRAME_NUM(64),
                 .CORE_NUM(16),     .BUS_TO_CORE(16),   .R0_DEPTH(8))    new_sched
                         (
                          .clk             (             clk),
@@ -43,8 +43,7 @@ module testbench;
                          .core_ready      (      core_ready),
                          .core_reading    (    core_reading),
                          .prog_loading    (    prog_loading),
-                         .data_frames_in  (  data_frames_in),
-                         .frame_being_sent(frame_being_sent)
+                         .data_frames_in  (  data_frames_in)
 
     );
     /*
