@@ -68,17 +68,17 @@ module new_sched
     endgenerate
 
 
-    wire [INSTR_SIZE - 1: 0] last_mask_w;
-    wire [             1: 0]     fence_w;
+    wire [INSTR_SIZE - 1: 0]    last_mask_w;
+    wire [             1: 0]        fence_w;
     
-    assign last_mask_w  =   cur_frame[1];
-    assign fence_w      =  (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
+    assign last_mask_w    =    cur_frame[1];
+    assign fence_w        =   (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
 
-    assign flag1 = ((last_mask_w & exec_mask == 0) || (exec_mask == 0)); 
-    assign flag2 =        !((fence_w == `SCHED_FENCE_REL) && exec_mask);
+    assign flag1 = ((last_mask_w & exec_mask == 0) | (exec_mask == 0)); 
+    assign flag2 =  !((fence_w == `SCHED_FENCE_REL) & exec_mask != 0 );
 
-    assign no_wait_cf   =  flag1 & flag2;
-    assign exec_mask    =    ~core_ready;
+    assign no_wait_cf     =   flag1 & flag2;
+    assign exec_mask      =     ~core_ready;
     
 
 
@@ -88,7 +88,7 @@ module new_sched
            fence <= 0;
 
         else
-            fence <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0) ?
+            fence <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
             fence_w  :  fence;        
     end
 
@@ -99,7 +99,7 @@ module new_sched
            last_mask <= 0;
 
         else
-            last_mask <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0) ?
+            last_mask <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
             last_mask_w : last_mask;
     end
 
@@ -111,74 +111,44 @@ module new_sched
            init_r0_vect <= 0;
 
         else
-            init_r0_vect <= (!prog_loading && if_num == 0 && global_tp[3: 0] == 0 && core_reading) ?
+            init_r0_vect <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0 & core_reading) ?
             cur_frame[2] : init_r0_vect;
     end
 
 
 
-
+    // noramal analog with if else if in the end of code
 /// mess_to_core    reg  logic
     always @(posedge clk) begin
         if (reset)
             mess_to_core <= 0;
 
         else 
-            mess_to_core <= (!prog_loading & core_reading) :
+            mess_to_core <= !(!prog_loading & core_reading) | ((if_num == 0) & (global_tp[3: 0] == 0)) ? 
+            mess_to_core                                                                               :
+
+            ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2) | if_num != 0)                ?
+            cur_frame[global_tp[3: 0]]                                                                 :
             
-
-
-
-
-        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
-
-            mess_to_core[15: 0] <= last_mask;
-
-        else if (!prog_loading && core_reading && if_num == 0 && 
-                      global_tp[3: 0] == 2) 
-            mess_to_core[15: 0] <= init_r0_vect;
-        
-
-        else if (!prog_loading && core_reading  
-                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
-                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
-        else 
-            mess_to_core <= mess_to_core;
+            (if_num == 0 & global_tp[3: 0] == 1)                                                       ?
+            last_mask                                                                                  : 
+            init_r0_vect                                                                               ;
     end
-    
 
-    always @(posedge clk) begin
-        if (reset) begin
-           no_collision <= 0;
-           rel_stop     <= 0;
 
-           end else begin
-            no_collision  <= ((last_mask & exec_mask == 0) || (exec_mask == 0));
-            rel_stop      <= !((fence == `SCHED_FENCE_REL) && exec_mask);
-            end
-        end
 
-    always @(posedge clk) begin
-        if (reset) begin
-           wait_not <= 1;
-           end else if (if_num == 0 && global_tp[3: 0] == 1) begin
-               wait_not <= no_wait_cf;
-           end else if (if_num == 0 && global_tp[3: 0] == 2) begin
-               wait_not <= 1;
-            end
-        end
 
 /// global_tp  reg  logic
     always @(posedge clk) begin
         if (reset)
            global_tp <= 0;
         
-        else if ((!prog_loading) && if_num == 0 && global_tp[3: 0] == 2 && core_reading)
+        else if ((!prog_loading) & if_num == 0 & global_tp[3: 0] == 2 & core_reading)
             global_tp <= global_tp + 10'h6;  //step over empty space
         
-        else if (!prog_loading && core_reading && (if_num != 0 || global_tp[3: 0] != 2)
-                 && !(if_num == 1 && global_tp[3: 0] == 4'hf && wait_it && (last_mask & exec_mask != 0))
-                 && (if_num == 0 && global_tp[3: 0] == 0 && no_wait_cf || if_num != 0 || global_tp[3: 0] != 0 )) 
+        else if (!prog_loading & core_reading & (if_num != 0 | global_tp[3: 0] != 2)
+                 & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
+                 & (if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
 
         else 
@@ -191,12 +161,12 @@ module new_sched
         if (reset) begin
            if_num <= 0;
 
-        end else if (!prog_loading && if_num && 
-                      /*core_reading &&*/ global_tp[3: 0] == 4'b1111 
-                      && (if_num != 1  || !(wait_it && (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
+        end else if (!prog_loading & if_num != 0 
+                      & global_tp[3: 0] == 4'b1111 
+                      & (if_num != 1  | !(wait_it & (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
             if_num <= if_num - 1;
 
-        end else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
+        end else if (!prog_loading & if_num == 0 & global_tp[3: 0] == 4'b1111)
             if_num <= next_if_num;
 
         else
@@ -207,14 +177,13 @@ module new_sched
 
 /// next_if_num  reg  logic
     always @(posedge clk) begin
-        if (reset) begin
+        if (reset) 
            next_if_num <= 0;
-        
-       end else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 0)
-            next_if_num <= cur_frame[0] & `SCHED_IFNUM_MASK;
 
         else
-            next_if_num <= next_if_num;
+            next_if_num <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
+            cur_frame[0] & `SCHED_IFNUM_MASK                                    :
+            next_if_num                                                         ;
     end
 
 
@@ -224,11 +193,11 @@ module new_sched
         if (reset)        
            wait_it <= 0;
                     
-        else if (!prog_loading && if_num == 0 && global_tp == 1 &&
+        else if (!prog_loading & if_num == 0 & global_tp[3: 0] == 1 &
             (fence == `SCHED_FENCE_ACQ)) // may be better delete it
             wait_it <= 1;
 
-        else if (if_num == 0 && global_tp[3:0] == 0)
+        else if (if_num == 0 & global_tp[3:0] == 0)
             wait_it <= 0;
         else
             wait_it <= wait_it;
@@ -321,4 +290,29 @@ module new_sched
 
 
 
+*/
+    
+
+    /// regs for barriers checking 
+/*
+    always @(posedge clk) begin
+        if (reset) begin
+           no_collision <= 0;
+           rel_stop     <= 0;
+
+           end else begin
+            no_collision  <= ((last_mask & exec_mask == 0) || (exec_mask == 0));
+            rel_stop      <= !((fence == `SCHED_FENCE_REL) && exec_mask);
+            end
+        end
+
+    always @(posedge clk) begin
+        if (reset) begin
+           wait_not <= 1;
+           end else if (if_num == 0 && global_tp[3: 0] == 1) begin
+               wait_not <= no_wait_cf;
+           end else if (if_num == 0 && global_tp[3: 0] == 2) begin
+               wait_not <= 1;
+            end
+        end
 */
