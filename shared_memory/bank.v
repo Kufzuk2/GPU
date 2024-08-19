@@ -30,7 +30,7 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
-	finish <= !reset && (write || read) ? 1'b1 : 1'b0;
+	finish <= !reset & (write | read) ? 1'b1 : 1'b0;
 end
 
 endmodule

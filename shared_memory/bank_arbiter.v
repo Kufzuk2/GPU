@@ -5,7 +5,6 @@ module bank_arbiter (
 	input wire [15:0] read,
 	input wire [15:0] write,
 	input wire [ 3:0] bank_n,     // bank number
-	input wire [15:0] core_val,   // core needs in memory access
 
 	input  wire [191:0] addr_in,
 	input  wire [127:0] data_in,
@@ -13,208 +12,75 @@ module bank_arbiter (
 	output reg [127:0] data_out,
 	output reg [ 15:0] finish    // signal for core from arbiter
 );
-reg unsigned [3:0] core_cnt;     // core counter counting from 0 to 15 in a circle 
-reg       	   addr_cor;     // core has address from this bank
 
+wire 	   addr_cor;     // core has address from this bank
 wire       core_serv;    // current core in service
-wire [4:0] sel_core;    // kernel selection
+wire [3:0] sel_core;    // kernel selection
 wire       bank_finish; // signal for arbiter from bank
+
+// additional wires for input and addr_cor multiplexers
+wire [7:0] data_in_mux    [15:0];
+wire [7:0] addr_in_mux    [15:0];
+wire       addr_cor_mux   [15:0];
 
 // enable/disable read/write for bank
 wire b_read;
 wire b_write;
 
 // transfer/receive data from bank
-reg  [7:0] b_addr_in;
-reg  [7:0] b_data_in;
+wire [7:0] b_addr_in;
+wire [7:0] b_data_in;
 wire [7:0] b_data_out;
 
+// import bank and round robin algorithm modules
+round_robin round_robin ( .clock(clock), .reset(reset), .core_serv(core_serv), .core_val(read | write), .core_cnt(sel_core));
 
 bank bank ( .clock(clock), .reset(reset), .read(b_read), .write(b_write), .addr_in(b_addr_in), .data_in(b_data_in), .data_out(b_data_out), .finish(bank_finish) );
 
-always @(posedge clock) begin
-	if(reset)
-		core_cnt  <= 4'b0;
+// define core_serv signal
+assign core_serv = addr_cor & !bank_finish ? 1'b1 : 1'b0;
 
-	else
-		core_cnt  <= core_serv ? core_cnt : (core_cnt == 4'b1111 ? 4'b0 : core_cnt + 1);
-end
+// define read/write signals for bank
+assign b_read  = core_serv ? read [sel_core] : 1'b0;
+assign b_write = core_serv ? write[sel_core] : 1'b0;
 
-assign core_serv = addr_cor && !bank_finish ? 1'b1 : 1'b0;
 
-assign sel_core = core_cnt;
+// input and addr_cor multiplexers
+assign addr_cor_mux[0] = sel_core == 0 ? (addr_in [11:8] == bank_n) : 1'b0;
+assign addr_in_mux [0] = sel_core == 0 ?  addr_in [ 7:0]            : 8'hx;
+assign data_in_mux [0] = sel_core == 0 ?  data_in [ 7:0]            : 8'hx;
 
-assign b_read  = core_serv ? read [core_cnt] : 1'b0;
-assign b_write = core_serv ? write[core_cnt] : 1'b0;
+genvar i;
 
-always @(sel_core) begin
-	if(core_val[core_cnt]) begin
-		casex(sel_core)
-			4'd0 :	begin
-				addr_cor   = (addr_in [ 11:  8] == bank_n);
-				b_addr_in  =  addr_in [  7:  0];
-				b_data_in  =  data_in [  7:  0];
-
-			end
-
-			4'd1 :	begin
-				addr_cor   = (addr_in [ 23: 20] == bank_n);
-				b_addr_in  =  addr_in [ 19: 12];
-				b_data_in  =  data_in [ 15:  8];
-
-			end
-
-			4'd2 :	begin
-				addr_cor   = (addr_in [ 35: 32] == bank_n);
-				b_addr_in  =  addr_in [ 31: 24];
-				b_data_in  =  data_in [ 23: 16];
-
-			end
-
-			4'd3 :	begin
-				addr_cor   = (addr_in [ 47: 44] == bank_n);
-				b_addr_in  =  addr_in [ 43: 36];
-				b_data_in  =  data_in [ 31: 24];
-						
-			end
-
-			4'd4 :	begin
-				addr_cor   = (addr_in [ 59: 56] == bank_n);
-				b_addr_in  =  addr_in [ 55: 48];
-				b_data_in  =  data_in [ 39: 32];
-
-			end
-
-			4'd5 :	begin
-				addr_cor   = (addr_in [ 71: 68] == bank_n);
-				b_addr_in  =  addr_in [ 67: 60];
-				b_data_in  =  data_in [ 47: 40];
-
-			end
-
-			4'd6 :	begin
-				addr_cor   = (addr_in [ 83: 80] == bank_n);
-				b_addr_in  =  addr_in [ 79: 72];
-				b_data_in  =  data_in [ 55: 48];
-
-			end
-
-			4'd7 :	begin
-				addr_cor   = (addr_in [ 95: 92] == bank_n);
-				b_addr_in  =  addr_in [ 91: 84];
-				b_data_in  =  data_in [ 63: 56];
-
-			end
-
-			4'd8 :	begin
-				addr_cor   = (addr_in [107:104] == bank_n);
-				b_addr_in  =  addr_in [103: 96];
-				b_data_in  =  data_in [ 71: 64];
-
-			end
-
-			4'd9 :	begin
-				addr_cor   = (addr_in [119:116] == bank_n);
-				b_addr_in  =  addr_in [115:108];
-				b_data_in  =  data_in [ 79: 72];
-			end
-
-			4'd10:	begin
-				addr_cor   = (addr_in [131:128] == bank_n);
-				b_addr_in  =  addr_in [127:120];
-				b_data_in  =  data_in [ 87: 80];
-			end
-
-			4'd11:	begin
-				addr_cor   = (addr_in [143:140] == bank_n);
-				b_addr_in  =  addr_in [139:132];
-				b_data_in  =  data_in [ 95: 88];
-			end
-
-			4'd12:	begin
-				addr_cor   = (addr_in [155:152] == bank_n);
-				b_addr_in  =  addr_in [151:144];
-				b_data_in  =  data_in [103: 96];
-			end
-
-			4'd13:	begin
-				addr_cor   = (addr_in [167:164] == bank_n);
-				b_addr_in  =  addr_in [163:156];
-				b_data_in  =  data_in [111:104];
-			end
-
-			4'd14:	begin
-				addr_cor   = (addr_in [179:176] == bank_n);
-				b_addr_in  =  addr_in [175:168];
-				b_data_in  =  data_in [119:112];
-			end
-
-			4'd15:	begin
-				addr_cor   = (addr_in [191:188] == bank_n);
-				b_addr_in  =  addr_in [187:180];
-				b_data_in  =  data_in [127:120];
-			end
-
-			default: begin
-				addr_cor  = 1'b0;
-				b_addr_in = 8'hx;
-				b_data_in = 8'hx;
-			end
-		endcase
+generate
+	for(i = 1; i < 16; i = i + 1) begin: gen_input_mux
+		assign addr_cor_mux[i[3:0]] = sel_core == i[3:0] ? (addr_in [11 + i[3:0] * 12 : 8 + i[3:0] * 12] == bank_n) : addr_cor_mux[i[3:0] - 1];
+		assign addr_in_mux [i[3:0]] = sel_core == i[3:0] ?  addr_in [ 7 + i[3:0] * 12 : 0 + i[3:0] * 12]            : addr_in_mux [i[3:0] - 1];
+		assign data_in_mux [i[3:0]] = sel_core == i[3:0] ?  data_in [ 7 + i[3:0] *  8 : 0 + i[3:0] *  8]            : data_in_mux [i[3:0] - 1];
 	end
+endgenerate
 
-	else begin
-		addr_cor  = 1'b0;
-		b_addr_in = 8'hx;
-		b_data_in = 8'hx;
+// define addr_cor signal and input data for bank
+assign addr_cor  = addr_cor_mux[15];
+assign b_addr_in = addr_in_mux [15];
+assign b_data_in = data_in_mux [15];
+
+
+// connecting data_out from bank with correct part of general data_out bus
+generate
+	for(i = 0; i < 16; i = i + 1) begin: gen_output_mux
+		always @(posedge clock) begin
+			data_out[7 + i[3:0] * 8 : 0 + i[3:0] * 8] <= sel_core == i[3:0] ? b_data_out : 8'hx;
+		end
 	end
-end
+endgenerate
 
-always @(posedge clock) begin
-	casex(sel_core)
-		4'd0 :
-			data_out[  7:  0] <= b_data_out;
-		4'd1 :
-			data_out[ 15:  8] <= b_data_out;
-		4'd2 :
-			data_out[ 23: 16] <= b_data_out;
-		4'd3 :
-			data_out[ 31: 24] <= b_data_out;
-		4'd4 :
-			data_out[ 39: 32] <= b_data_out;
-		4'd5 :
-			data_out[ 47: 40] <= b_data_out;
-		4'd6 :
-			data_out[ 55: 48] <= b_data_out;
-		4'd7 :
-			data_out[ 63: 56] <= b_data_out;
-		4'd8 :
-			data_out[ 71: 64] <= b_data_out;
-		4'd9 :
-			data_out[ 79: 72] <= b_data_out;
-		4'd10:
-			data_out[ 87: 80] <= b_data_out;
-		14'd11:
-			data_out[ 95: 88] <= b_data_out;
-		4'd12:
-			data_out[103: 96] <= b_data_out;
-		4'd13:
-			data_out[111:104] <= b_data_out;
-		4'd14:
-			data_out[119:112] <= b_data_out;
-		4'd15:
-			data_out[127:120] <= b_data_out;
-		default:
-			data_out <= 8'hx;
-	endcase
-
-end
-
+// define general finish signal for cores
 always @(posedge clock) begin
 	if(reset)
 		finish <= 16'b0;
 	else if(bank_finish)
-		finish <= 16'b1 << core_cnt;
+		finish <= 16'b1 << sel_core;
 	else
 		finish <= 16'b0;
 		
