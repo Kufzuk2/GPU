@@ -1,15 +1,16 @@
+
 `include "../gpu_def.v"
 
 //TODO     send r0 data + core and r0 mask
 // move waiting earlier
 // remove tp && tp + 1 && tp + 2 at the same time
-module scheduler
+module new_sched
 #(
     parameter     DATA_DEPTH  = 1024,
     parameter   R0_DATA_SIZE  =  128,  
     parameter CTRL_DATA_SIZE  =   48,  
     parameter     INSTR_SIZE  =   16,
-    parameter     FRAME_SIZE  =   16,
+    parameter     FRAME_SIZE  =  256,
     parameter      FRAME_NUM  =   64,
     parameter       CORE_NUM  =   16,
     parameter    BUS_TO_CORE  =   16,
@@ -23,10 +24,8 @@ module scheduler
     input  wire reset,
     input  wire core_reading,
     input  wire prog_loading,
-    output wire frame_being_sent,
     input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
     input  wire [CORE_NUM    - 1: 0]                        core_ready,  // may be better reverse it
-    
     output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
 
     output reg         r0_loading,
@@ -36,47 +35,23 @@ module scheduler
 //change for wires where possible
 );
 
-    reg [INSTR_SIZE - 1: 0] data_frames [DATA_DEPTH - 1: 0];   // better change type of memory later
-    
-    wire [FRAME_NUM      - 1: 0]  cur_frame;
-    wire [R0_DATA_SIZE   - 1: 0]  cur_r0_data;
-    wire [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data;
+    reg  [INSTR_SIZE - 1: 0] data_frames [DATA_DEPTH - 1: 0];   // better change type of memory later
+    wire [INSTR_SIZE - 1: 0]  cur_frame  [FRAME_SIZE - 1: 0];
 
-    reg [FRAME_NUM      - 1: 0]  cur_frame1;
-    reg [R0_DATA_SIZE   - 1: 0]  cur_r0_data1;
-    reg [CTRL_DATA_SIZE - 1: 0]  cur_ctrl_data1;
+    reg  [CORE_NUM   - 1: 0]                    init_r0_vect;    // only new  data, old not considered here
+    reg  [CORE_NUM   - 1: 0]                       last_mask;  // cores used by the latest task//
+    wire [CORE_NUM   - 1: 0]                       exec_mask;
 
-
-    always @(posedge clk) begin
-    cur_frame1 <= cur_frame;
-    cur_r0_data1 <= cur_r0_data;    
-    cur_ctrl_data1 <= cur_ctrl_data;    
-
-
-
-    end
-
-
-
-    assign cur_frame     = data_frames[global_tp];
-    assign cur_r0_data   =  cur_frame [global_tp];
-    assign cur_ctrl_data =  cur_frame [global_tp];
-
-
-    reg [CORE_NUM    - 1: 0]                  init_r0_vect;    // only new  data, old not considered here
-    reg [CORE_NUM   - 1: 0]                      last_mask;  // cores used by the latest task//
-    wire [CORE_NUM   - 1: 0]                     exec_mask;
-
-    reg [ 5: 0]    if_num;//
-    reg [ 9: 0] global_tp;   // [3:0] = tp, [9:4] = frame //
-    reg [ 1: 0]     fence;   // barrier . will be deleted. Now needed only for easy testing
-    reg           wait_it;//
+    reg [ 5: 0]      if_num;
+    reg [ 5: 0] next_if_num;
+    reg [ 9: 0]   global_tp;   // [3:0] = tp, [9:4] = frame 
+    reg [ 1: 0]       fence;   // barrier . will be deleted. Now needed only for easy testing
+    reg             wait_it;
 
     reg no_collision;
     reg rel_stop;
     reg wait_not;
     /// temporal regs for testing
-
 
     wire flag1;
     wire flag2;
@@ -84,36 +59,48 @@ module scheduler
 
     integer k;
     integer j;
+   
+    genvar a;
+    generate
+        for (a = 0; a < FRAME_SIZE; a = a + 1)
+            assign cur_frame[a] = data_frames[global_tp + a];
 
-    assign flag1 = ((last_mask & exec_mask == 0) || (exec_mask == 0)); 
-    assign flag2     = !((fence == `SCHED_FENCE_REL) && exec_mask);
+    endgenerate
 
-    assign no_wait_cf = flag1 & flag2;
 
-    assign exec_mask = ~core_ready;
-
+    wire [INSTR_SIZE - 1: 0]    last_mask_w;
+    wire [             1: 0]        fence_w;
     
+    assign last_mask_w    =    cur_frame[1];
+    assign fence_w        =   (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
+
+    assign flag1 = ((last_mask_w & exec_mask == 0) | (exec_mask == 0)); 
+    assign flag2 =  !((fence_w == `SCHED_FENCE_REL) & exec_mask != 0 );
+
+    assign no_wait_cf     =   flag1 & flag2;
+    assign exec_mask      =     ~core_ready;
+    
+
 
 /// fence   reg  logic
     always @(posedge clk) begin
         if (reset)
            fence <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'h0)
-            fence <= (data_frames[global_tp] & `SCHED_FENCE_MASK) >> 6;
-        else 
-            fence <= fence;
+        else
+            fence <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
+            fence_w  :  fence;        
     end
+
 
 /// last_mask   reg  logic
     always @(posedge clk) begin
         if (reset)
            last_mask <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 1)  
-            last_mask <= data_frames[global_tp];
-        else 
-            last_mask <= last_mask;
+        else
+            last_mask <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
+            last_mask_w : last_mask;
     end
 
 
@@ -123,37 +110,110 @@ module scheduler
         if (reset)
            init_r0_vect <= 0;
 
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 2 && core_reading)  
-            init_r0_vect <= data_frames[global_tp];
-        
-        else 
-            init_r0_vect <= init_r0_vect;
+        else
+            init_r0_vect <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0 & core_reading) ?
+            cur_frame[2] : init_r0_vect;
     end
 
 
 
-
+    // noramal analog with if else if in the end of code
 /// mess_to_core    reg  logic
     always @(posedge clk) begin
         if (reset)
             mess_to_core <= 0;
 
-        else if (!prog_loading && core_reading && if_num != 0) begin // also was !waiting, but i suppose its useless here
-
-            mess_to_core[15: 0] <= data_frames[global_tp];
-
-        end else if (!prog_loading && core_reading && if_num == 0 && 
-                      global_tp[3: 0] == 2) 
-            mess_to_core[15: 0] <= data_frames[global_tp];
-        
-
-        else if (!prog_loading && core_reading /*&& if_num == 0*/ 
-                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
-                    mess_to_core[15: 0] <= data_frames[global_tp]; 
         else 
-            mess_to_core <= mess_to_core;
+            mess_to_core <= !(!prog_loading & core_reading) | ((if_num == 0) & (global_tp[3: 0] == 0)) ? 
+            mess_to_core                                                                               :
+
+            ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2) | if_num != 0)                ?
+            cur_frame[global_tp[3: 0]]                                                                 :
+            
+            (if_num == 0 & global_tp[3: 0] == 1)                                                       ?
+            last_mask                                                                                  : 
+            init_r0_vect                                                                               ;
     end
-    
+
+
+
+
+/// global_tp  reg  logic
+    always @(posedge clk) begin
+        if (reset)
+           global_tp <= 0;
+        
+        else if ((!prog_loading) & if_num == 0 & global_tp[3: 0] == 2 & core_reading)
+            global_tp <= global_tp + 10'h6;  //step over empty space
+        
+        else if (!prog_loading & core_reading & (if_num != 0 | global_tp[3: 0] != 2)
+                 & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
+                 & (if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
+            global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
+
+        else 
+            global_tp <= global_tp;
+    end // must work as for r0 load as for instr mes
+
+
+/// if_num  reg  logic
+    always @(posedge clk) begin
+        if (reset) begin
+           if_num <= 0;
+
+        end else if (!prog_loading & if_num != 0 
+                      & global_tp[3: 0] == 4'b1111 
+                      & (if_num != 1  | !(wait_it & (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
+            if_num <= if_num - 1;
+
+        end else if (!prog_loading & if_num == 0 & global_tp[3: 0] == 4'b1111)
+            if_num <= next_if_num;
+
+        else
+            if_num <= if_num;
+    end
+
+
+
+/// next_if_num  reg  logic
+    always @(posedge clk) begin
+        if (reset) 
+           next_if_num <= 0;
+
+        else
+            next_if_num <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
+            cur_frame[0] & `SCHED_IFNUM_MASK                                    :
+            next_if_num                                                         ;
+    end
+
+
+
+    /// wait_it   reg  logic
+    always @(posedge clk) begin
+        if (reset)        
+           wait_it <= 0;
+                    
+        else if (!prog_loading & if_num == 0 & global_tp[3: 0] == 1 &
+            (fence == `SCHED_FENCE_ACQ)) // may be better delete it
+            wait_it <= 1;
+
+        else if (if_num == 0 & global_tp[3:0] == 0)
+            wait_it <= 0;
+        else
+            wait_it <= wait_it;
+    end
+
+
+    /// data_frames   reg  logic
+    always @(posedge clk) begin
+        if (prog_loading) begin
+            for (j = 0; j < DATA_DEPTH; j++) begin
+                data_frames[j] <= data_frames_in[j];
+            end
+        end
+    end
+
+
 /*
     /// r0_loading reg logic
     always @(posedge clk) begin
@@ -200,6 +260,41 @@ module scheduler
 */
 
 
+    endmodule
+
+/*
+/// mess_to_core    reg  logic
+    always @(posedge clk) begin
+        if (reset)
+            mess_to_core <= 0;
+
+        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
+
+            mess_to_core[15: 0] <= last_mask;
+
+        else if (!prog_loading && core_reading && if_num == 0 && 
+                      global_tp[3: 0] == 2) 
+            mess_to_core[15: 0] <= init_r0_vect;
+        
+
+        else if (!prog_loading && core_reading  
+                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
+                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
+        else 
+            mess_to_core <= mess_to_core;
+    end
+
+
+
+
+
+
+
+*/
+    
+
+    /// regs for barriers checking 
+/*
     always @(posedge clk) begin
         if (reset) begin
            no_collision <= 0;
@@ -220,82 +315,4 @@ module scheduler
                wait_not <= 1;
             end
         end
-
-/// global_tp  reg  logic
-    always @(posedge clk) begin
-        if (reset)
-           global_tp <= 0;
-        
-        else if ((!prog_loading) && (if_num == 0) && global_tp[3: 0] == 2 && core_reading &&
-           /* ((last_mask & exec_mask == 0) || (exec_mask == 0)) && !((fence == `SCHED_FENCE_REL) && exec_mask)) */
-           no_wait_cf)
-            //gtp == 2 => jump to 16   // AB + ~B  == A + ~B
-            //last mask here works as current
-
-            global_tp <= global_tp + 10'h6;  //step over empty space
-        
-        else if (!prog_loading && core_reading && (if_num != 0 || global_tp[3: 0] != 2)
-                 && !(if_num == 1 && global_tp[3: 0] == 4'hf && wait_it && (last_mask & exec_mask != 0))) 
-            global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
-
-        else 
-            global_tp <= global_tp;
-    end // must work as for r0 load as for instr mes
-
-
-/// if_num  reg  logic
-    always @(posedge clk) begin
-        if (reset) begin
-           if_num <= 0;
-
-        end else if (!prog_loading && if_num && 
-                      core_reading && global_tp[3: 0] == 4'b1111 
-                      && (if_num != 1  || !(wait_it && (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
-            if_num <= if_num - 1;
-
-        end else if (!prog_loading && if_num == 0  
-                                   && global_tp[3: 0] == 4'b1111) begin
-            if_num <= data_frames[global_tp - 10'hf] & `SCHED_IFNUM_MASK; 
-        end else
-            if_num <= if_num;
-    end
-
-
-    /// wait_it   reg  logic
-    always @(posedge clk) begin
-        if (reset)        
-           wait_it <= 0;
-                    
-        else if (!prog_loading && if_num == 0 && global_tp == 1 &&
-            (fence == `SCHED_FENCE_ACQ))
-            wait_it <= 1;
-
-        else if (if_num == 0 && global_tp[3:0] == 0)
-            wait_it <= 0;
-        else
-            wait_it <= wait_it;
-    end
-
-
-    /// data_frames   reg  logic
-    always @(posedge clk) begin
-        if (prog_loading) begin
-            for (j = 0; j < DATA_DEPTH; j++) begin
-                data_frames[j] <= data_frames_in[j];
-            end
-        end
-    end
-
-
-
-    endmodule
-
-
-
-
-
-
-
-
-
-
+*/
