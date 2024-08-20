@@ -4,7 +4,7 @@
 //TODO     send r0 data + core and r0 mask
 // move waiting earlier
 // remove tp && tp + 1 && tp + 2 at the same time
-module new_sched
+module scheduler
 #(
     parameter     DATA_DEPTH  = 1024,
     parameter   R0_DATA_SIZE  =  128,  
@@ -29,7 +29,7 @@ module new_sched
     output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
 
     output reg         r0_loading,
-    output reg         if_loading,
+    //output reg         if_loading,
     output reg  core_mask_loading,
     output reg    r0_mask_loading
 //change for wires where possible
@@ -45,7 +45,7 @@ module new_sched
     reg [ 5: 0]      if_num;
     reg [ 5: 0] next_if_num;
     reg [ 9: 0]   global_tp;   // [3:0] = tp, [9:4] = frame 
-    reg [ 1: 0]       fence;   // barrier . will be deleted. Now needed only for easy testing
+    reg [ 1: 0]       fence;   // barrier . will be deleted. Now needed only for easy testing (about wires)
     reg             wait_it;
 
     reg no_collision;
@@ -136,7 +136,40 @@ module new_sched
     end
 
 
+//r0_loading flag reg logic
+    
+    always @(posedge clk) begin
+        if (reset)
+            r0_loading <= 0;
+        else
+            r0_loading <= (!prog_loading & core_reading &   if_num == 0 & 
+                            global_tp[3: 0] != 0 & global_tp[3: 0] != 1 & 
+                            global_tp[3: 0] != 2)                       ?
+            1: 0;
+    end    
 
+//r0_mask_loading flag reg logic
+    
+    always @(posedge clk) begin
+        if (reset)
+            r0_mask_loading <= 0;
+        else
+            r0_mask_loading <= (!prog_loading & core_reading & if_num == 0 & 
+                                global_tp[3: 0] == 2)                      ?
+            1: 0;
+    end    
+        
+//core_mask_loading flag reg logic
+    
+    always @(posedge clk) begin
+        if (reset)
+            core_mask_loading <= 0;
+        else
+            core_mask_loading <= (!prog_loading & core_reading & if_num == 0 & 
+                                  global_tp[3: 0] == 1)                      ?
+            1: 0;
+    end    
+    
 
 /// global_tp  reg  logic
     always @(posedge clk) begin
