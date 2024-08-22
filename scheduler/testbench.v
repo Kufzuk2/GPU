@@ -1,3 +1,4 @@
+`include "../../pseudo_asm.v"
 `timescale 1ns/100ps
 
 module testbench;
@@ -8,9 +9,11 @@ module testbench;
     reg core_reading;
     reg [DATA_DEPTH - 1: 0][15: 0] data_frames_in;
     reg [15: 0]              core_ready;
+    reg [15: 0]                 tm_line;
     reg                    prog_loading;
     wire               frame_being_sent;
     integer i; 
+    integer j; 
     
     integer file;
     integer status;
@@ -18,12 +21,10 @@ module testbench;
 
     always 
         #1 clk = ~clk;
-/*
-    always
-        #3 core_reading = $random; 
-*/
+ 
 
- task send_tm_line(input [15:0] instruction, input integer j);
+
+    task send_tm_line(input [15:0] instruction, input integer j);
         begin
             // Проверка на допустимый индекс
             if (j >= 0 && j <= 1023) begin
@@ -46,12 +47,9 @@ module testbench;
                          .data_frames_in  (  data_frames_in)
 
     );
-    /*
-initial begin
-        // Загрузка данных из hex-файла
-        $readmemh("task_memory.hex", data_frames_in);
-    end
-*/
+
+
+
 
     initial begin
         clk          <= 0;
@@ -59,29 +57,69 @@ initial begin
         core_ready   <= 16'hffff;
         core_reading <= 1;
         prog_loading <= 1;
-/*
-        file = $fopen("instructions.txt", "r");
-        if (file == 0) begin
-            $display("Ошибка: не удалось открыть файл!");
-            $finish;
-        end
 
-        // Чтение инструкций из файла и загрузка в массив
-        for (i = 0; i < 1024; i = i + 1) begin
-            status = $fscanf(file, "%h\n", instruction); // Чтение 16-битной инструкции в шестнадцатеричном формате
+
+    for (j = 0; j < 48; j = j + 1) begin 
+        case (j) 
             
-            if (status != 1) begin
-                $display("Ошибка: не удалось прочитать инструкцию %0d.", i);
-                $finish;
-            end
+            0: tm_line = {8'h0, 2'h0,2'h2}; // fence 0, if_num 2
+            1: tm_line = {16'h0f0f}; // random mask
+            2: tm_line = {16'h0}; // r0_ mask not needed yet
+            3: tm_line = {16'h0}; // 
+            4: tm_line = {16'h0}; // 
+            5: tm_line = {16'h0}; // 
+            6: tm_line = {16'h0}; // 
+            7: tm_line = {16'h0}; // 
+            8: tm_line = {16'h0}; // r0_data empty
+            9: tm_line = {16'h0}; // r0_data empty
+            10: tm_line = {16'h0}; // r0_data empty
+            11: tm_line = {16'h0}; // r0_data empty
+            12: tm_line = {16'h0}; // r0_data empty
+            13: tm_line = {16'h0}; // r0_data empty
+            14: tm_line = {16'h0}; // r0_data empty
+            15: tm_line = {16'h0}; // r0_data empty
             
-            send_tm_line(instruction, i); // Загружаем инструкцию в массив
-        end
 
-        // Закрытие файла после чтения
-        $fclose(file);
-*/
+            16: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R0};
+            17: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R1};
+            18: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R2};
+            19: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R3};
+            20: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R4};
+            21: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R5};
+            22: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R6};
+            23: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R7};
+            24: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R8};
+            25: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R9};
+            26: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R10};
+            27: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R11};
+            28: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R12};
+            29: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R13};
+            30: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R14};
+            31: tm_line = {`OPCODE_SET_CONST, 4'h0, 4'h0, `R15};
 
+            32: tm_line = {`OPCODE_ADD, `R0, `R1, `R2};
+            33: tm_line = {`OPCODE_ADD, `R0, `R1, `R8};
+            34: tm_line = {`OPCODE_MUL, `R8, `R8, `R9};
+            35: tm_line = {`OPCODE_DIV, `R9, `R2, `R12};
+            36: tm_line = {`OPCODE_SUB, `R2, `R1, `R13};
+            37: tm_line = {`OPCODE_CMPGE, `R9, `R2, `R15};
+            38: tm_line = {`OPCODE_RSHFT, `R9, `R0, `R14};
+            39: tm_line = {`OPCODE_LSHFT, `R9, `R0, `R14};
+            40: tm_line = {`OPCODE_AND, `R0, `R2, `R7};
+            41: tm_line = {`OPCODE_OR, `R0, `R2, `R7};
+            42: tm_line = {`OPCODE_XOR, `R1, `R0, `R7};
+            43: tm_line = {`OPCODE_LD, `R0, `R0, `R0};
+            44: tm_line = {`OPCODE_ST, `R0, `R0, `R0};
+            45: tm_line = {`OPCODE_SUB, `R0, `R3, `R0};
+            46: tm_line = {`OPCODE_BNZ, `R0, `R13, `R13};
+            47: tm_line = {`OPCODE_READY, `R0, `R0, `R0};
+
+            // Второй фрейм - операции
+
+        //    default: {16'h0}; // Обработка остальных случаев (опционально, можно оставить пустым)
+        endcase
+        send_tm_line(tm_line, j);
+    end
     end
 
 	initial begin 
@@ -89,86 +127,6 @@ initial begin
         #10;
         reset = 0;
         #10;
-        data_frames_in[0]  =  16'h0043;  // new task must not start
-        data_frames_in[1]  =  16'h000f;
-        data_frames_in[2]  =  16'h000f;
-
-        for (i = 3; i < 64; i = i + 1) begin
-            data_frames_in[i] = $random;
-        end
-
-        
-
-        data_frames_in[64]  =  16'h0003;
-        data_frames_in[65]  =  16'h00f0; // must wait previous. add changin ready flag
-        data_frames_in[66]  =  16'h00f0;
-
-        for (i = 67; i < 128; i = i + 1) begin
-            data_frames_in[i] = $random;
-        end
-
-
-
-        data_frames_in[128]  =  16'h0007;
-        data_frames_in[129]  =  16'h00f0; // cllision of masks, must wait
-        data_frames_in[130]  =  16'h00f0;
-
-        for (i = 131; i < 256; i = i + 1) begin
-            data_frames_in[i] = $random;
-        end
-
-        data_frames_in[256]  =  16'h008f;  // must not start before every core is free
-        data_frames_in[257]  =  16'h0f00;
-        data_frames_in[258]  =  16'h0f00;
-
-        for (i = 259; i < 1024; i = i + 1) begin
-            data_frames_in[i] = $random;
-        end
-
-
-
-        #10;
-        prog_loading = 0;
-
-        #20;
-        core_ready   = 16'hfff0;
-
-        #35;
-
-        #85;
-        core_ready = 16'hff00;
-
-        #60; // 190
-        core_ready = 16'hff0f;
-
-        #450;
-        core_ready = 16'hffff;
-
-        #12;
-        core_ready = 16'hff0f;
-
-        #240;
-        core_ready = 16'hffff;
-        #2;
-        core_ready = 16'hff0f;
-
-        #340;
-        core_ready = 16'hffff;
-/*
-
-/*
-        data_frames_in[66: 64]  =  48'h000f000f0003;
-        data_frames_in[79: 67] = 208'h1373155187753233769575848246214661179909884209798945;  // 1 frame readay
-        //now 3 if: 48 instrs
-        data_frames_in[127: 80] = 768'h909349783518983001342480463695987813001572382692929389525816505418711888217498902051905706357098961069882743753078170660315226012310218614980287216204456170791124167120519739573313858667656760
-        
-
-        data_frames_in[130: 128]  =  48'hf000f0000003;
-        data_frames_in[143: 131] = 208'h1373155187753233769575848246214661179909884209798945;  // 1 frame readay
-        //now 3 if: 48 instrs1
-        data_frames_in[191: 144] = 768'h909349783518983001342480463695987813001572382692929389525816505418711888217498902051905706357098961069882743753078170660315226012310218614980287216204456170791124167120519739573313858667656760
-*/
-//        data_frames_in[DATA_DEPTH - 1: 192] = 0;
         #190;
         #450;
         #450;
@@ -181,3 +139,6 @@ initial begin
 
 
 endmodule 
+
+
+

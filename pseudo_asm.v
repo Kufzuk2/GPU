@@ -38,7 +38,7 @@
 `define R14 4'hE
 `define R15 4'hF  
 
-
+/*
 module psv;	 
 	
 	reg [15:0] tm_line;
@@ -49,67 +49,67 @@ initial
 		//1st frame
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R0};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R1};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R2};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R3};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R4};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R5};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R6};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R7};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R8};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R9};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R10};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R11};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R12};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R13};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R14};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SET_CONST,4'h0,4'h0,`R15};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		
 		
@@ -118,67 +118,69 @@ initial
 		//2nd frame
 		tm_line = {`OPCODE_ADD,R0,R1,R2};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_ADD,R0,R1,R8};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_MUL,R8,R8,R9};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_DIV,R9,R2,R12};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SUB,R2,R1,R13};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_CMPGE,R9,R2,R15};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_RSHFT,R9,R0,R14};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_LSHFT,R9,R0,R14};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_AND,R0,R2,R7};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_OR,R0,R2,R7};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_XOR,R1,R0,R7};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_LD,R0,R0,R0};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_ST,R0,R0,R0};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_SUB,R0,R3,R0};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_BNZ,R0,R13,R13};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 		tm_line = {`OPCODE_READY,R0,R0,R0};
 		//
-		//send_tm_line(tm_line);
+		//
 		//
 	end
 endmodule	
+
+*/
