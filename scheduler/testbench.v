@@ -13,7 +13,7 @@ module testbench;
     reg                    prog_loading;
     wire               frame_being_sent;
     integer i; 
-    integer j; 
+    integer k; 
     
     integer file;
     integer status;
@@ -28,7 +28,9 @@ module testbench;
         begin
             // Проверка на допустимый индекс
             if (j >= 0 && j <= 1023) begin
+                $display ("before write: instruction: %h , number %d", instruction, j);
                 data_frames_in[j] = instruction; // Запись инструкции в массив
+                $display ("after writing     data_frames_in[%d] = %h ", j, data_frames_in[j]);
             end else begin
                 $display("Ошибка: индекс вне диапазона!");
             end
@@ -59,12 +61,12 @@ module testbench;
         prog_loading <= 1;
 
 
-    for (j = 0; j < 48; j = j + 1) begin 
-        case (j) 
+    for (k = 0; k < 48; k = k + 1) begin 
+        case (k) 
             
             0: tm_line = {8'h0, 2'h0,2'h2}; // fence 0, if_num 2
             1: tm_line = {16'h0f0f}; // random mask
-            2: tm_line = {16'h0}; // r0_ mask not needed yet
+            2: tm_line = {16'h0f00}; // r0_ mask not needed yet
             3: tm_line = {16'h0}; // 
             4: tm_line = {16'h0}; // 
             5: tm_line = {16'h0}; // 
@@ -118,7 +120,7 @@ module testbench;
 
         //    default: {16'h0}; // Обработка остальных случаев (опционально, можно оставить пустым)
         endcase
-        send_tm_line(tm_line, j);
+        send_tm_line(tm_line, k);
     end
     end
 
@@ -127,6 +129,12 @@ module testbench;
         #10;
         reset = 0;
         #10;
+
+        for (i = 48; i < 1024; i = i + 1) begin
+            data_frames_in[i] = $random;
+        end
+        #20;
+        prog_loading = 0;
         #190;
         #450;
         #450;

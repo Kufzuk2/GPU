@@ -116,7 +116,6 @@ module scheduler
     end
 
 
-
     // noramal analog with if else if in the end of code
 /// mess_to_core    reg  logic
     always @(posedge clk) begin
@@ -124,7 +123,9 @@ module scheduler
             mess_to_core <= 0;
 
         else 
-            mess_to_core <= !(!prog_loading & core_reading) | ((if_num == 0) & (global_tp[3: 0] == 0)) ? 
+            mess_to_core <= !(!prog_loading & core_reading) | ((if_num == 0) & (global_tp[3: 0] == 0)
+            )
+                                                                                                       ? 
             mess_to_core                                                                               :
 
             ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2) | if_num != 0)                ?
@@ -134,6 +135,33 @@ module scheduler
             last_mask                                                                                  : 
             init_r0_vect                                                                               ;
     end
+
+
+
+
+/*
+/// mess_to_core    reg  logic
+    always @(posedge clk) begin
+        if (reset)
+            mess_to_core <= 0;
+
+        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
+
+            mess_to_core[15: 0] <= last_mask;
+
+        else if (!prog_loading && core_reading && if_num == 0 && 
+                      global_tp[3: 0] == 2) 
+            mess_to_core[15: 0] <= init_r0_vect;
+        
+
+        else if (!prog_loading && core_reading  
+                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
+                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
+        else 
+            mess_to_core <= mess_to_core;
+    end
+
+*/
 
 
 //r0_loading flag reg logic
