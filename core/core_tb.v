@@ -21,40 +21,68 @@ module Core_tb;
 
 
 reg clk;
+reg core_id;
 reg reset;
 reg val_data;
 reg val_ins;
+reg val_mask_R0;
+reg val_mask_ac;
+reg val_R0;
 reg [15:0]instruction;
 wire [11:0]addr_shared_memory;
 reg [7:0]mem_dat;
 wire [7:0]mem_dat_st;
-wire [3:0]core_id;
 wire rtr;
-wire mem_req;
+wire mem_req_st;
+wire mem_req_ld;
 wire ready;
 
 
+
  always 
-        #0.5 clk = ~clk;
+	 #0.5 clk = ~clk;
 
 	gpu_core_1 core_tb (
 		.clk(clk),
 		.reset(reset),
+		.core_id(core_id),
 		.val_data(val_data),
+		.val_mask_R0(val_mask_R0),
+	    .val_mask_ac(val_mask_ac),
 		.val_ins(val_ins),
+		.val_R0(val_R0)	,
 		.instruction(instruction),
 		.addr_shared_memory(addr_shared_memory),
 		.mem_dat(mem_dat),
 		.mem_dat_st(mem_dat_st),
-		.core_id(core_id),
 		.rtr(rtr),
-		.mem_req(mem_req),
+		.mem_req_ld(mem_req_ld),
+		.mem_req_st(mem_req_st),
 		.ready(ready));
 initial begin
+	core_id <=1;
 	clk <= 1;
 	reset <=1;
 	#5
 	reset <= 0;
+	val_mask_ac<=1;
+	instruction <=0;
+	#1
+	val_mask_ac<=0;
+	#1
+	val_mask_ac<=1;
+	instruction <=2;
+	#1
+	val_mask_ac<=0;
+	#1
+	val_mask_R0<=1;
+	instruction <=2;
+	#1
+	val_mask_R0<=0;
+	val_R0<=1;
+	instruction <=3;
+	#1
+	val_R0<=0;
 	val_ins <= 1;
 	instruction <= `ins12|0;
 	#1
