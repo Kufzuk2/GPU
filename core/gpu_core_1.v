@@ -54,7 +54,7 @@ module gpu_core_1(
 			if (reset) 
 				begin
 					PC <= 0;
-					ready <= 0;
+					ready <= 1;
 					rtr <= 1;
 					br_tkn <= 0;
 					br_target <= 0;

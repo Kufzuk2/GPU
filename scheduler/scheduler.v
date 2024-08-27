@@ -3,7 +3,7 @@
     `include "scheduler/gpu_def.v"
 `endif    
 `ifndef ALL
-    `include "scheduler/gpu_def.v"
+    `include "../gpu_def.v"
 `endif    
 
 
@@ -30,8 +30,8 @@ module scheduler
 (
     input  wire clk,
     input  wire reset,
-    input  wire core_reading,
     input  wire prog_loading,
+    input  wire [15: 0] core_reading,
     input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
     input  wire [CORE_NUM    - 1: 0]                        core_ready,  // may be better reverse it
     output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
@@ -39,7 +39,8 @@ module scheduler
     output reg         r0_loading,
     //output reg         if_loading,
     output reg  core_mask_loading,
-    output reg    r0_mask_loading
+    output reg    r0_mask_loading,
+    output reg      instr_loading
 //change for wires where possible
 );
 
@@ -65,13 +66,16 @@ module scheduler
     wire flag2;
     wire no_wait_cf;
 
+    wire write_en;
+    assign write_en = !prog_loading & (((core_reading & last_mask) == last_mask) | last_mask == 0);
+
     integer k;
     integer j;
    
     genvar a;
     generate
         for (a = 0; a < FRAME_SIZE; a = a + 1)
-            assign cur_frame[a] = data_frames[global_tp + a];
+            assign cur_frame[a] = data_frames[{global_tp[9: 4], 4'h0} + a];
 
     endgenerate
 
@@ -119,19 +123,19 @@ module scheduler
            init_r0_vect <= 0;
 
         else
-            init_r0_vect <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0 & core_reading) ?
+            init_r0_vect <= (write_en & if_num == 0 & global_tp[3: 0] == 0) ?
             cur_frame[2] : init_r0_vect;
     end
 
 
     // noramal analog with if else if in the end of code
 /// mess_to_core    reg  logic
-    always @(posedge clk) begin
+    always @(posedge clk) begin // mb better add if(r0_mask, but easier not too and seems pointless)
         if (reset)
             mess_to_core <= 0;
 
         else 
-            mess_to_core <= !(!prog_loading & core_reading) | ((if_num == 0) & (global_tp[3: 0] == 0)
+            mess_to_core <= !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0)
             )
                                                                                                        ? 
             mess_to_core                                                                               :
@@ -178,9 +182,19 @@ module scheduler
         if (reset)
             r0_loading <= 0;
         else
-            r0_loading <= (!prog_loading & core_reading &   if_num == 0 & 
+            r0_loading <= (write_en &   if_num == 0 & 
                             global_tp[3: 0] != 0 & global_tp[3: 0] != 1 & 
                             global_tp[3: 0] != 2)                       ?
+            1: 0;
+    end    
+
+    //instr_loading flag reg logic
+    
+    always @(posedge clk) begin
+        if (reset)
+            instr_loading <= 0;
+        else
+            instr_loading <= (write_en & if_num != 0) ?
             1: 0;
     end    
 
@@ -190,7 +204,7 @@ module scheduler
         if (reset)
             r0_mask_loading <= 0;
         else
-            r0_mask_loading <= (!prog_loading & core_reading & if_num == 0 & 
+            r0_mask_loading <= (write_en & if_num == 0 & 
                                 global_tp[3: 0] == 2)                      ?
             1: 0;
     end    
@@ -201,7 +215,7 @@ module scheduler
         if (reset)
             core_mask_loading <= 0;
         else
-            core_mask_loading <= (!prog_loading & core_reading & if_num == 0 & 
+            core_mask_loading <= (write_en & if_num == 0 & 
                                   global_tp[3: 0] == 1)                      ?
             1: 0;
     end    
@@ -212,10 +226,10 @@ module scheduler
         if (reset)
            global_tp <= 0;
         
-        else if ((!prog_loading) & if_num == 0 & global_tp[3: 0] == 2 & core_reading)
+        else if ((write_en) & if_num == 0 & global_tp[3: 0] == 2)
             global_tp <= global_tp + 10'h6;  //step over empty space
         
-        else if (!prog_loading & core_reading & (if_num != 0 | global_tp[3: 0] != 2)
+        else if (write_en & (if_num != 0 | global_tp[3: 0] != 2)
                  & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
                  & (if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg

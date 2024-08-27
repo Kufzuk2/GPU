@@ -6,7 +6,7 @@ module testbench;
 
     reg clk;
     reg reset;
-    reg core_reading;
+    reg [15: 0]  core_reading;
     reg [DATA_DEPTH - 1: 0][15: 0] data_frames_in;
     reg [15: 0]              core_ready;
     reg [15: 0]                 tm_line;
@@ -57,7 +57,7 @@ module testbench;
         clk          <= 0;
         reset        <= 1;
         core_ready   <= 16'hffff;
-        core_reading <= 1;
+        core_reading <= 16'hffff;
         prog_loading <= 1;
 
 

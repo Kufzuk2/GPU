@@ -31,7 +31,6 @@ wire [ 3:0] masks;
     wire    r0_mask_loading;
     wire val_ins;
 
-    assign val_ins = ~r0_loading & ~core_mask_loading & ~r0_mask_loading;
 
 genvar i;
 
@@ -59,17 +58,13 @@ generate
 	end
 endgenerate
 
-assign final_core_reading = gpu_core_reading[ 0] & gpu_core_reading[ 1] & gpu_core_reading[ 2] & gpu_core_reading[ 3] & gpu_core_reading[ 4] & 
-                            gpu_core_reading[ 5] & gpu_core_reading[6 ] & gpu_core_reading[ 7] & gpu_core_reading[ 8] & gpu_core_reading[ 9] & 
-                            gpu_core_reading[10] & gpu_core_reading[11] & gpu_core_reading[12] & gpu_core_reading[13] & gpu_core_reading[14] & 
-                            gpu_core_reading[15];
 
- 
+
 
 scheduler gpu_scheduler 
-                    ( .clk(clk), .reset(reset),         
-                      .r0_mask_loading(val_mask_R0),     .core_mask_loading(val_mask_ac),
-                      .r0_loading(val_R0),             .core_reading(final_core_reading), 
+                    ( .clk(clk), .reset(reset),  .instr_loading(val_ins),
+                      .r0_mask_loading(r0_mask_loading),     .core_mask_loading(core_mask_loading),
+                      .r0_loading(r0_loading),             .core_reading(gpu_core_reading), 
                       .prog_loading(prog_loading),
                       .data_frames_in(data_frames_in), 
                       .core_ready(core_ready), .mess_to_core(instruction)
