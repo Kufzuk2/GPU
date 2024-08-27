@@ -1,3 +1,13 @@
+
+`ifdef ALL
+`include "shared_memory/bank.v"
+`include "shared_memory/round_robin.v"
+`endif
+`ifndef ALL
+`include "bank.v"
+`include "round_robin.v"
+`endif
+
 module bank_arbiter (
 	input wire clock,
 	input wire reset,

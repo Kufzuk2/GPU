@@ -1,4 +1,13 @@
-`include "scheduler/gpu_def.v"
+
+`ifdef ALL
+    `include "scheduler/gpu_def.v"
+`endif    
+`ifndef ALL
+    `include "scheduler/gpu_def.v"
+`endif    
+
+
+
 
 //TODO     send r0 data + core and r0 mask
 // move waiting earlier

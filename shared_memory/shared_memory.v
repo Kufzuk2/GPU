@@ -1,3 +1,13 @@
+
+`ifdef ALL
+`include "shared_memory/bank_arbiter.v"
+`endif
+`ifndef ALL
+`include "bank_arbiter.v"
+`endif
+
+
+
 module shared_memory (
 	input wire clock,
 	input wire reset,
@@ -83,6 +93,7 @@ data_in_8 , data_in_7 , data_in_6 , data_in_5 , data_in_4 , data_in_3 , data_in_
 wire [127:0] data_out;
 wire [ 15:0] finish;
 
+/*
 assign data_out_0  = data_out[  7:  0]; assign finish_0 = finish[ 0];
 assign data_out_1  = data_out[ 15:  8]; assign finish_1 = finish[ 1];
 assign data_out_2  = data_out[ 23: 16]; assign finish_1 = finish[ 2];
@@ -99,8 +110,94 @@ assign data_out_12 = data_out[103: 96]; assign finish_1 = finish[12];
 assign data_out_13 = data_out[111:104]; assign finish_1 = finish[13];
 assign data_out_14 = data_out[119:112]; assign finish_1 = finish[14];
 assign data_out_15 = data_out[127:120]; assign finish_1 = finish[15];
+*/
 
 
+always @(posedge clock) begin
+ data_out_0  <= data_out[  7:  0]; 
+ finish_0 <= finish[ 0];
+ data_out_1  <= data_out[ 15:  8]; 
+ finish_1 <= finish[ 1];
+ data_out_2  <= data_out[ 23: 16];
+ finish_2 <= finish[ 2];
+ data_out_3  <= data_out[ 31: 24]; 
+ finish_3 <= finish[ 3];
+ data_out_4  <= data_out[ 39: 32];
+ finish_4 <= finish[ 4];
+ data_out_5  <= data_out[ 47: 40]; 
+ finish_5 <= finish[ 5];
+ data_out_6  <= data_out[ 55: 48];
+ finish_6 <= finish[ 6];
+ data_out_7  <= data_out[ 63: 56];
+ finish_7 <= finish[ 7];
+ data_out_8  <= data_out[ 71: 64]; 
+ finish_8 <= finish[ 8];
+ data_out_9  <= data_out[ 79: 72]; 
+ finish_9 <= finish[ 9];
+ data_out_10 <= data_out[ 87: 80]; 
+ finish_10 <= finish[10];
+ data_out_11 <= data_out[ 95: 88]; 
+ finish_11 <= finish[11];
+ data_out_12 <= data_out[103: 96]; 
+ finish_12 <= finish[12];
+ data_out_13 <= data_out[111:104]; 
+ finish_13 <= finish[13];
+ data_out_14 <= data_out[119:112]; 
+ finish_14 <= finish[14];
+ data_out_15 <= data_out[127:120];
+ finish_15 <= finish[15];
+end
+
+
+bank_arbiter arbiter_0  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd0 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_1  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd1 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_2  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd2 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_3  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd3 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_4  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd4 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_5  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd5 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_6  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd6 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_7  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd7 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_8  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd8 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_9  ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd9 ),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_10 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd10),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_11 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd11),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_12 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd12),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_13 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd13),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_14 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd14),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+bank_arbiter arbiter_15 ( .clock(clock), .reset(reset), .read(read), .write(write),
+ .bank_n(4'd15),  .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
+
+/*
 bank_arbiter arbiter_0  ( .clock(clock), .reset(reset), .read(read), .write(write),
  .bank_n(4'd0 ), .core_val(core_val), .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
 
@@ -148,5 +245,5 @@ bank_arbiter arbiter_14 ( .clock(clock), .reset(reset), .read(read), .write(writ
 
 bank_arbiter arbiter_15 ( .clock(clock), .reset(reset), .read(read), .write(write),
  .bank_n(4'd15), .core_val(core_val), .addr_in(addr_in), .data_in(data_in), .data_out(data_out), .finish(finish));
-
+*/
 endmodule

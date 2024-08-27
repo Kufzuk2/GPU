@@ -1,8 +1,8 @@
 
-`include "../../pseudo_asm.v"
+`include "pseudo_asm.v"
 `timescale 1ns/100ps
 
-module testbench;
+module gpu_test;
     parameter  DATA_DEPTH = 1024;
 
     reg clk;
@@ -133,7 +133,7 @@ module testbench;
     end
 
 	initial begin 
-		$dumpfile("dump.vcd"); $dumpvars(0, testbench);
+		$dumpfile("dump.vcd"); $dumpvars(0, gpu_test);
         #10;
         reset = 0;
         #10;

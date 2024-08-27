@@ -12,7 +12,7 @@ module gpu_core_1(
 	output reg [11:0] addr_shared_memory, // addr to shared memory
 	input wire[7:0] mem_dat, // data from sm
 	output reg [7:0] mem_dat_st, // data to sm 
-	input reg [3:0] core_id,
+	input wire [3:0] core_id,
 	
 	output reg rtr, // Ready to recieve
 	output reg mem_req_ld, // Memory request
