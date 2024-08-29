@@ -45,7 +45,8 @@ module gpu_core_1(
 	reg br_tkn;
 	reg [3:0] br_target;
 	
-	integer i = 0;
+	reg [4:0] i ;
+	reg [4:0] counter_ri;
 	//integer count = 0;
 	reg cos = 1;
 	
@@ -53,6 +54,8 @@ module gpu_core_1(
 		begin
 			if (reset) 
 				begin
+					i <= 0;
+					counter_ri <=0;
 					PC <= 0;
 					ready <= 1;
 					rtr <= 1;
@@ -77,23 +80,33 @@ module gpu_core_1(
 						begin
 							RF[0] <= 1;
 						end
-					else RF[0] <= 0;		
-					if (val_R0 & RF[0])
+					else RF[0] <= RF[0];		
+					if (val_R0)
 						begin
-							RF[0] <= instruction[7:0];
-						end		
+							if(RF[0] && (counter_ri == core_id))
+								begin 
+									RF[0] <= instruction[7:0];
+								end
+							if(RF[0] && (counter_ri == core_id-1))
+								begin 
+									RF[0] <= instruction[15:8];
+								end	
+							counter_ri = counter_ri+2;
+						end
 					if (val_ins) 
 						begin
 							ready <=0;
+							counter_ri <= 16;
 							ins_mem[i] <= instruction;
 							i = i +1;
 						end
 					else ins_mem[i]<=ins_mem[i];
 					
-					if (i == 16)
+					if ((i == 16)&&(counter_ri == 16))
 						begin 
 							state <=F;
-							i=0;
+							i<=0;
+							counter_ri <= 0;
 							rtr <= 0;
 						end
 					
@@ -195,7 +208,14 @@ module gpu_core_1(
 				end
 		end	
 	always @(posedge clk)
-		begin 
+		begin
+			if (reset)
+				begin
+				mem_dat_st<=0;
+				addr_shared_memory<=0;
+				mem_req_ld <= 0;
+				mem_req_st <= 0;
+				end
 			if (!(reset)&&(state==M)) 
 				begin
 					if(IR_M[15:12]==11)

@@ -21,7 +21,7 @@ module Core_tb;
 
 
 reg clk;
-reg core_id;
+reg [3:0] core_id;
 reg reset;
 reg val_data;
 reg val_ins;
@@ -60,7 +60,7 @@ wire ready;
 		.mem_req_st(mem_req_st),
 		.ready(ready));
 initial begin
-	core_id <=1;
+	core_id <= 4;
 	clk <= 1;
 	reset <=1;
 	#5
@@ -71,16 +71,30 @@ initial begin
 	val_mask_ac<=0;
 	#1
 	val_mask_ac<=1;
-	instruction <=2;
+	instruction <=16;
 	#1
 	val_mask_ac<=0;
 	#1
 	val_mask_R0<=1;
-	instruction <=2;
+	instruction <=16;
 	#1
 	val_mask_R0<=0;
 	val_R0<=1;
-	instruction <=3;
+	instruction <= 16'b0000010000000000;
+	#1
+	instruction <=5;
+	#1			   
+	instruction <=6;
+	#1				
+	instruction <=7;
+	#1				
+	instruction <=8;
+	#1				
+	instruction <=9;
+	#1				
+	instruction <=1;
+	#1				
+	instruction <=2;
 	#1
 	val_R0<=0;
 	val_ins <= 1;
@@ -145,7 +159,7 @@ initial begin
 	#1
 	instruction <= `ins13|12'b000000000000;
 	#1
-	instruction <= `ins2|12'b000000110000;
+	instruction <= `ins2|12'b000011110000;
 	#1
 	instruction <= `ins14|12'b000011011101;
 	#1
