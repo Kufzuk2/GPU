@@ -38,7 +38,7 @@ generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_cores
 		gpu_core_1 gpu_core_i 
                         ( .clk(clk), .reset(reset),           .val_ins(val_ins),    .val_mask_R0(r0_mask_loading), 
-                          .val_mask_ac(core_mask_loading),    .val_R0(r0_loading),  .val_data(finish[8 * i[3:0]]), 
+                          .val_mask_ac(core_mask_loading),    .val_R0(r0_loading),  .val_data(finish[i[3:0]]),       // initially was 8 * i[3:0]
                           .instruction(instruction), .addr_shared_memory(addr_in[11 + 12 * i[3:0] : 12 * i[3:0]]),
 
                           .mem_dat(data_out[7 + 8 * i[3:0] : 8 *  i[3:0]]),  .mem_dat_st(data_in[7 + 8 * i[3:0] : 8 * i[3:0]]),
