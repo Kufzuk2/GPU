@@ -28,9 +28,9 @@ module gpu_test;
         begin
             // Проверка на допустимый индекс
             if (j >= 0 && j <= 1023) begin
-//                $display ("before write: instruction: %h , number %d", instruction, j);
+                $display ("before write: instruction: %h , number %d", instruction, j);
                 data_frames_in[j] = instruction; // Запись инструкции в массив
-//                $display ("after writing     data_frames_in[%d] = %h ", j, data_frames_in[j]);
+                $display ("after writing     data_frames_in[%d] = %h ", j, data_frames_in[j]);
             end else begin
                 $display("Ошибка: индекс вне диапазона!");
             end
@@ -126,7 +126,7 @@ module gpu_test;
         46: tm_line = {16'h0};
         47: tm_line = {16'h0};
 
-
+/// separately 1st core
         48: tm_line = {`OPCODE_SET_CONST, 8'h0, `R3};
         49: tm_line = {`OPCODE_SET_CONST, 8'h4, `R9};
         50: tm_line = {`OPCODE_SET_CONST, 8'd252, `R10};

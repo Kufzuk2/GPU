@@ -155,9 +155,31 @@ module scheduler
     end
 
 
+    always @(posedge clk) begin // display block
+        if ( !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0)))
+            $display ("mess_to_core no change: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
+        else if ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2))                
+            $display ("mess_to_core r0 : %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
+        else if (if_num != 0)
+            $display ("mess_to_core  ins: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
+
+    end
+    
 
 
-/*
+
+    // display block
+    
+    always @(posedge clk) begin
+        if (!prog_loading)
+            $display();
+    end // must work as for r0 load as for instr mes
+
+
+
+
+
+        /*
 /// mess_to_core    reg  logic
     always @(posedge clk) begin
         if (reset)
