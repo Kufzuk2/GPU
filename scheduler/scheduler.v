@@ -99,9 +99,13 @@ module scheduler
         if (reset)
            fence <= 0;
 
-        else
+        else begin
             fence <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
             fence_w  :  fence;        
+            `ifdef TR
+                $display("fence  ");
+            `endif
+        end
     end
 
 
