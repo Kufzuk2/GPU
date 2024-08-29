@@ -67,6 +67,8 @@ module scheduler
     wire no_wait_cf;
 
     wire write_en;
+    wire tmp;
+    assign tmp      = ((core_reading & last_mask) == last_mask);
     assign write_en = !prog_loading & (((core_reading & last_mask) == last_mask) | last_mask == 0);
 
     integer k;
@@ -86,7 +88,7 @@ module scheduler
     assign last_mask_w    =    cur_frame[1];
     assign fence_w        =   (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
 
-    assign flag1 = ((last_mask_w & exec_mask == 0) | (exec_mask == 0)); 
+    assign flag1 = (((last_mask_w & exec_mask) == 0) | (exec_mask == 0)); 
     assign flag2 =  !((fence_w == `SCHED_FENCE_REL) & exec_mask != 0 );
 
     assign no_wait_cf     =   flag1 & flag2;
@@ -235,7 +237,7 @@ module scheduler
         
         else if (write_en & (if_num != 0 | global_tp[3: 0] != 2)
                  & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
-                 & (if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
+                 & ( if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
 
         else 
