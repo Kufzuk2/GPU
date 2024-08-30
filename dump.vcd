@@ -1,5 +1,5 @@
 $date
-	Fri Aug 30 11:20:00 2024
+	Fri Aug 30 14:55:05 2024
 $end
 $version
 	Icarus Verilog
@@ -3325,18 +3325,22 @@ $scope begin genblk1[254] $end
 $upscope $end
 $scope begin genblk1[255] $end
 $upscope $end
+$scope begin $ivl_for_loop0 $end
+$var integer 32 <* p [31:0] $end
+$upscope $end
 $upscope $end
 $upscope $end
 $scope task send_tm_line $end
-$var reg 16 <* instruction [15:0] $end
-$var integer 32 =* j [31:0] $end
+$var reg 16 =* instruction [15:0] $end
+$var integer 32 >* j [31:0] $end
 $upscope $end
 $upscope $end
 $enddefinitions $end
 #0
 $dumpvars
-b1111111111 =*
-b1111000000000000 <*
+b1111111111 >*
+b1111000000000000 =*
+bx <*
 bx ;*
 x:*
 bx 9*
@@ -5694,6 +5698,7 @@ b1111 _
 b10000000000 ;*
 1!
 #400
+b10000000000 <*
 1/*
 0!
 0#

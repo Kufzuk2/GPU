@@ -170,6 +170,7 @@ module scheduler
 
     // display block
     
+            `ifdef REG_D
     always @(posedge clk) begin
         if (!prog_loading & global_tp != 10'h40 ) begin
             $display("******************************************************************** ");
@@ -179,7 +180,14 @@ module scheduler
             $display("cur_frame[0] = %h ", cur_frame[0]);
             $display("******************************************************************** ");
         end
-/*        if (!prog_loading & (global_tp[3: 0] == 4'h0) & global_tp != 10'h40) begin
+    end // must work as for r0 load as for instr mes
+            `endif
+
+            `ifdef CUR_FR_D
+      
+    always @(posedge clk) begin
+
+        if (!prog_loading & (global_tp[3: 0] == 4'h0) & global_tp != 10'h40) begin
 
             $display("============================================================================ ");
             for (integer n = 0; n < 16; n = n + 1) begin
@@ -188,8 +196,8 @@ module scheduler
             end
 
             $display("============================================================================ ");
-        end*/
-    end // must work as for r0 load as for instr mes
+        end 
+    `endif
 
 
 
@@ -334,15 +342,28 @@ module scheduler
     /// data_frames   reg  logic
     always @(posedge clk) begin
         if (prog_loading) begin
-            $display("============================================================================ ");
             for (j = 0; j < DATA_DEPTH; j++) begin
                 data_frames[j] <= data_frames_in[j];
-                $display("data_frames[%d]    = %h", j, data_frames[j]);
-                $display("data_frames_in[%d] = %h", j, data_frames_in[j]);
+
             end
-            $display("============================================================================ ");
         end
     end
+
+
+            `ifdef DATA_IN
+
+    always @( negedge prog_loading) begin
+            for (integer p = 0; p < DATA_DEPTH; p++) begin
+                $display("data_frames[%d]    = %h", p, data_frames[p]);
+                $display("data_frames_in[%d] = %h", p, data_frames_in[p]);
+            end
+    end
+
+                `endif 
+
+
+
+
 
 
 /*
