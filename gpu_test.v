@@ -73,8 +73,8 @@ module gpu_test;
         case (k) 
             
         0: tm_line = {12'h0, 4'h1};                                                                                                                                                                                                                  
-        1: tm_line = {16'h7fff};                                                                                                                                                                                                                     
-        2: tm_line = {16'h7fff};                                                                                                                                                                                                                     
+        1: tm_line = {16'hfffe};                                                                                                                                                                                                                     
+        2: tm_line = {16'hfffe};                                                                                                                                                                                                                     
         3: tm_line = {16'h0};                                                                                                                                                                                                                        
         4: tm_line = {16'h0};                                                                                                                                                                                                                        
         5: tm_line = {16'h0};                                                                                                                                                                                                                        
@@ -110,8 +110,8 @@ module gpu_test;
 
         31: tm_line = {`OPCODE_READY, 12'h0}; // extra                                                                                                                                                                                              
         32: tm_line = {12'h0, 4'h1};                                                                                                                                                                                                                 
-        33: tm_line = {16'h8000};                                                                                                                                                                                                                   
-        34: tm_line = {16'h8000}; // only 1st core                                                                                                                                                                                                 
+        33: tm_line = {16'h0001};                                                                                                                                                                                                                   
+        34: tm_line = {16'h0001}; // only 1st core                                                                                                                                                                                                 
         35: tm_line = {16'h0};                                                                                                                                                                                                                       
         36: tm_line = {16'h0};                                                                                                                                                                                                                       
         37: tm_line = {16'h0};                                                                                                                                                                                                                       
@@ -181,8 +181,8 @@ module gpu_test;
 
 
         96: tm_line = {12'h0, 4'h1};
-        97: tm_line = {16'h7fff};
-        98: tm_line = {16'h7fff};
+        97: tm_line = {16'hfffe};
+        98: tm_line = {16'hfffe};
         99: tm_line = {16'h0};
         100: tm_line = {16'h0};
         101: tm_line = {16'h0};
@@ -252,8 +252,8 @@ module gpu_test;
 
 
         160: tm_line = {12'h0, 4'h1};
-        161: tm_line = {16'h0001}; // only 1st core
-        162: tm_line = {16'h0001};
+        161: tm_line = {16'h8000}; // only 1st core
+        162: tm_line = {16'h8000};
         163: tm_line = {16'h0};
         164: tm_line = {16'h0};
         165: tm_line = {16'h0};

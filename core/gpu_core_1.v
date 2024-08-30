@@ -49,7 +49,57 @@ module gpu_core_1(
 	reg [4:0] counter_ri;
 	//integer count = 0;
 	reg cos = 1;
-	
+
+
+    reg [7:0] RF_0;
+    reg [7:0] RF_1;
+    reg [7:0] RF_2;
+    reg [7:0] RF_3;
+    reg [7:0] RF_4;
+    reg [7:0] RF_5;
+    reg [7:0] RF_6;
+    reg [7:0] RF_7;
+    reg [7:0] RF_8;
+    reg [7:0] RF_9;
+    reg [7:0] RF_10;
+    reg [7:0] RF_11;
+    reg [7:0] RF_12;
+    reg [7:0] RF_13;
+    reg [7:0] RF_14;
+    reg [7:0] RF_15;
+
+
+    always @(posedge clk) 
+        begin
+          RF_0 <= RF[0];
+          RF_1 <= RF[1];
+          RF_2 <= RF[2];
+          RF_3 <= RF[3];
+          RF_4 <= RF[4];
+          RF_5 <= RF[5];
+          RF_6 <= RF[6];
+          RF_7 <= RF[7];
+          RF_8 <= RF[8];
+          RF_9 <= RF[9];
+          RF_10 <= RF[10];
+          RF_11 <= RF[11];
+          RF_12 <= RF[12];
+          RF_13 <= RF[13];
+          RF_14 <= RF[14];
+          RF_15 <= RF[15];
+        end
+
+    always @(posedge clk) 
+        begin
+          if (reset) 
+            begin
+              for (integer c = 0; c < 16; c=c+1 )
+                begin 
+                  RF[c] <= 0;
+                end
+            end
+        end
+
 	always @(posedge clk) 
 		begin
 			if (reset) 
@@ -85,11 +135,11 @@ module gpu_core_1(
 						begin
 							if(RF[0] && (counter_ri == core_id))
 								begin 
-									RF[0] <= instruction[7:0];
+									RF[0] <= instruction[15:8];
 								end
 							if(RF[0] && (counter_ri == core_id-1))
 								begin 
-									RF[0] <= instruction[15:8];
+									RF[0] <= instruction[7:0];
 								end	
 							counter_ri = counter_ri+2;
 						end
