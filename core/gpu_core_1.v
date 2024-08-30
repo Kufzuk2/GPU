@@ -227,7 +227,7 @@ module gpu_core_1(
 						4'b1000: O_M[7:0] <= A & B_E; // and
 						4'b1001: O_M[7:0] <= A | B_E; // or
 						4'b1010: O_M[7:0] <= A ^ B_E; // xor
-						4'b1011: O_M      <= {B_E[3:0],A};  // addr for ld 
+						4'b1011: O_M      <= {A[3:0],B_E};  // addr for ld 
 						4'b1100:  
 							begin
 								if (IR_E[3] == 0)
@@ -239,7 +239,7 @@ module gpu_core_1(
 										O_M <= {IR_E[11:8],IR_E[7:4]};
 									end
 							end
-						4'b1101: O_M      <= {B_E[3:0],A};  //addr for st
+						4'b1101: O_M      <= {A[3:0],B_E};  //addr for st
 						4'b1110:
 							begin 
 								if (A != 0)
@@ -277,6 +277,7 @@ module gpu_core_1(
 					if(IR_M[15:12]==13)
 						begin
 							mem_req_st <= 1;
+							mem_dat_st <= data_to_store_M;
 							
 							addr_shared_memory <= O_M;
 							state <= M_W;
@@ -305,7 +306,6 @@ module gpu_core_1(
 					if((val_data)&&(IR_M[15:12]==13))
 						begin
 							IR_WB <= IR_M;
-							mem_dat_st <= data_to_store_M;
 							state <= WB;
 							mem_req_st <=0;
 						end	
