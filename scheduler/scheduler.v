@@ -154,7 +154,7 @@ module scheduler
             init_r0_vect                                                                               ;
     end
 
-
+/*
     always @(posedge clk) begin // display block
         if ( !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0)))
             $display ("mess_to_core no change: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
@@ -164,15 +164,31 @@ module scheduler
             $display ("mess_to_core  ins: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
 
     end
-    
+  */  
 
 
 
     // display block
     
     always @(posedge clk) begin
-        if (!prog_loading)
-            $display();
+        if (!prog_loading & global_tp != 10'h40 ) begin
+            $display("******************************************************************** ");
+            $display("fence        = %h , if_num    = %h ", fence, if_num);
+            $display("last_mask    = %h , exec_mask = %h ", last_mask, exec_mask);
+            $display("init_r0_vect = %h , global_tp = %h ", init_r0_vect, global_tp);
+            $display("cur_frame[0] = %h ", cur_frame[0]);
+            $display("******************************************************************** ");
+        end
+/*        if (!prog_loading & (global_tp[3: 0] == 4'h0) & global_tp != 10'h40) begin
+
+            $display("============================================================================ ");
+            for (integer n = 0; n < 16; n = n + 1) begin
+                $display("cur_frame[%d] = %h , must_be data_frames[%h]  %h", n, cur_frame[n], {global_tp[9: 4], 4'd0} + n, data_frames[{global_tp[9: 4], 4'd0} + n]);
+                $display("global_tp[9: 4] = %h, %h, %d , data_frames[%d] = %h", global_tp[9: 4], 4'h0, n, global_tp + n, data_frames[global_tp + n]);
+            end
+
+            $display("============================================================================ ");
+        end*/
     end // must work as for r0 load as for instr mes
 
 
@@ -318,9 +334,13 @@ module scheduler
     /// data_frames   reg  logic
     always @(posedge clk) begin
         if (prog_loading) begin
+            $display("============================================================================ ");
             for (j = 0; j < DATA_DEPTH; j++) begin
                 data_frames[j] <= data_frames_in[j];
+                $display("data_frames[%d]    = %h", j, data_frames[j]);
+                $display("data_frames_in[%d] = %h", j, data_frames_in[j]);
             end
+            $display("============================================================================ ");
         end
     end
 
