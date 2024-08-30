@@ -9,8 +9,7 @@
 
 
 `timescale 1 ns / 100 ps
-
-//`define SIMUL_MODE
+`define SIMUL_MODE
 
 module bank_arbiter (
 	input wire clock,
@@ -101,7 +100,7 @@ always @(posedge clock or posedge bank_finish) begin
 end
 
 `ifdef SIMUL_MODE
-	reg [8 * 14:1] output_file;
+	reg [8 * 28:1] output_file;
 
 	reg [3:0] bank_num;
 	reg       was_reset;
@@ -117,19 +116,19 @@ end
 		for(k = 0; k < 16; k = k + 1) begin
 			if(k[3:0] == bank_n) begin
 				if(k[3:0] < 10)
-					output_file = {"bank_", "0" + k[7:0]        , "_trc.txt"};
+					output_file = {"shared_memory/bank_", "0" + k[7:0]        , "_trc.txt"};
 				else
-					output_file = {"bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
+					output_file = {"shared_memory/bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
 				
 				k = 16;
 			end
 		end
 
 		out_dsp = $fopen(output_file);
-		if(out_dsp == 0) begin
+		/*if(out_dsp == 0) begin
 			$display("Cannot open file %s!\n", output_file);
 			$finish;
-		end
+		end*/
 
 		//#2;
 		//while(!reset & was_reset) k = 0;
@@ -139,7 +138,7 @@ end
 
 	always @(posedge clock) begin
 		$fdisplay(out_dsp, "Core: %d, status(serv): %d, read: %d, write: %d, addr_in: %d, data_in: %d, data_out: %d, finish: %d at %0t.\n",
-		sel_core, core_serv, b_read, b_write, b_addr_in, b_data_in, b_data_out, finish[sel_core], $time);
+		sel_core, core_serv, read[sel_core], write[sel_core], b_addr_in, b_data_in, b_data_out, finish[sel_core], $time);
 	end
 
 `endif
