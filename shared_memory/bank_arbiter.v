@@ -48,7 +48,8 @@ wire [7:0] b_data_out;
 // import bank and round robin algorithm modules
 round_robin round_robin ( .clock(clock), .reset(reset), .core_serv(core_serv), .core_val(read | write), .core_cnt(sel_core));
 
-bank bank ( .clock(clock), .reset(reset), .read(b_read), .write(b_write), .addr_in(b_addr_in), .data_in(b_data_in), .data_out(b_data_out), .finish(bank_finish) );
+bank bank ( .clock(clock), .reset(reset), .read(b_read), .write(b_write), .addr_in(b_addr_in), .data_in(b_data_in),
+	`ifdef SIMUL_MODE .bank_n(bank_n), `endif .data_out(b_data_out), .finish(bank_finish) );
 
 // define core_serv signal
 assign core_serv = addr_cor & !bank_finish ? 1'b1 : 1'b0;
@@ -100,14 +101,18 @@ always @(posedge clock or posedge bank_finish) begin
 end
 
 `ifdef SIMUL_MODE
-	reg [8 * 28:1] output_file;
+	reg [8 * 36:1] output_file;
 
 	reg [3:0] bank_num;
 	reg       was_reset;
+	//reg       was_work;
 
 	integer k, out_dsp;
 
 	initial begin
+
+		was_reset = 1'b0;
+		//was_work  = 1'b0;
 		
 		while(!reset) was_reset = 1'b0;
 		was_reset = 1'b1;
@@ -116,13 +121,16 @@ end
 		for(k = 0; k < 16; k = k + 1) begin
 			if(k[3:0] == bank_n) begin
 				if(k[3:0] < 10)
-					output_file = {"shared_memory/bank_", "0" + k[7:0]        , "_trc.txt"};
+					output_file = {"shared_memory/tracing/bank_", "0" + k[7:0]        , "_trc.txt"};
 				else
-					output_file = {"shared_memory/bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
+					output_file = {"shared_memory/tracing/bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
 				
 				k = 16;
 			end
 		end
+
+		//while(reset & was_reset) was_work = 1'b0;
+		//was_work = 1'b1;
 
 		out_dsp = $fopen(output_file);
 		/*if(out_dsp == 0) begin
@@ -130,9 +138,7 @@ end
 			$finish;
 		end*/
 
-		//#2;
-		//while(!reset & was_reset) k = 0;
-
+		//while(!reset & was_reset & was_work) k = 0;
 		//$fclose(out_dsp);
 	end
 
@@ -140,6 +146,13 @@ end
 		$fdisplay(out_dsp, "Core: %d, status(serv): %d, read: %d, write: %d, addr_in: %d, data_in: %d, data_out: %d, finish: %d at %0t.\n",
 		sel_core, core_serv, read[sel_core], write[sel_core], b_addr_in, b_data_in, b_data_out, finish[sel_core], $time);
 	end
+
+	/*always @(posedge clock) begin
+		if(read == 16'hx | write == 16'hx)
+			$fdisplay(out_dsp, "Error: write = %b, read = %b at %0t!\n", write, read, $time);
+
+		if(addr_in == 16'hx &
+	end*/
 
 `endif
 
