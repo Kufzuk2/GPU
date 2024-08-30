@@ -1,4 +1,4 @@
-
+/*
 `ifdef ALL
 `include "shared_memory/bank.v"
 `include "shared_memory/round_robin.v"
@@ -7,6 +7,10 @@
 `include "bank.v"
 `include "round_robin.v"
 `endif
+*/
+`timescale 1 ns / 100 ps
+
+`define SIMUL_MODE
 
 module bank_arbiter (
 	input wire clock,
@@ -86,7 +90,7 @@ generate
 endgenerate
 
 // define general finish signal for cores
-always @(posedge clock) begin
+always @(posedge clock or posedge bank_finish) begin
 	if(reset)
 		finish <= 16'b0;
 	else if(bank_finish)
@@ -95,5 +99,49 @@ always @(posedge clock) begin
 		finish <= 16'b0;
 		
 end
+
+`ifdef SIMUL_MODE
+	reg [8 * 14:1] output_file;
+
+	reg [3:0] bank_num;
+	reg       was_reset;
+
+	integer k, out_dsp;
+
+	initial begin
+		
+		while(!reset) was_reset = 1'b0;
+		was_reset = 1'b1;
+		
+		bank_num = bank_n;
+		for(k = 0; k < 16; k = k + 1) begin
+			if(k[3:0] == bank_n) begin
+				if(k[3:0] < 10)
+					output_file = {"bank_", "0" + k[7:0]        , "_trc.txt"};
+				else
+					output_file = {"bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
+				
+				k = 16;
+			end
+		end
+
+		out_dsp = $fopen(output_file);
+		if(out_dsp == 0) begin
+			$display("Cannot open file %s!\n", output_file);
+			$finish;
+		end
+
+		//#2;
+		//while(!reset & was_reset) k = 0;
+
+		//$fclose(out_dsp);
+	end
+
+	always @(posedge clock) begin
+		$fdisplay(out_dsp, "Core: %d, status(serv): %d, read: %d, write: %d, addr_in: %d, data_in: %d, data_out: %d, finish: %d at %0t.\n",
+		sel_core, core_serv, b_read, b_write, b_addr_in, b_data_in, b_data_out, finish[sel_core], $time);
+	end
+
+`endif
 
 endmodule
