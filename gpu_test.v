@@ -298,7 +298,7 @@ module gpu_test;
         reset = 0;
         #10;
 
-        for (i = 48; i < 1024; i = i + 1) begin
+        for (i = 191; i < 1024; i = i + 1) begin
             data_frames_in[i] = $random;
         end
         #20;
