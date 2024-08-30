@@ -1,4 +1,3 @@
-/*
 `ifdef ALL
 `include "shared_memory/bank.v"
 `include "shared_memory/round_robin.v"
@@ -7,10 +6,11 @@
 `include "bank.v"
 `include "round_robin.v"
 `endif
-*/
+
+
 `timescale 1 ns / 100 ps
 
-`define SIMUL_MODE
+//`define SIMUL_MODE
 
 module bank_arbiter (
 	input wire clock,
