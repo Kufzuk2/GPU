@@ -16,6 +16,7 @@ wire [15 : 0] core_ready;
 wire [15 : 0] read;
 wire [15 : 0] write;
 wire [15 : 0] finish;
+wire [15 : 0] finish_array [15 : 0];
 
 wire [191:0] addr_in;
 wire [127:0] data_in;
@@ -31,6 +32,9 @@ wire [ 3:0] masks;
     wire    r0_mask_loading;
     wire val_ins;
 
+
+assign finish = finish_array[ 0] |  finish_array[ 1] |  finish_array[ 2] | finish_array[ 3] | finish_array[ 4] | finish_array[ 5] | finish_array[ 6] | finish_array[ 7] | 
+		finish_array[ 8] |  finish_array[ 9] |  finish_array[10] | finish_array[11] | finish_array[12] | finish_array[13] | finish_array[14] | finish_array[15] ; 
 
 genvar i;
 
@@ -53,7 +57,7 @@ generate
 	bank_arbiter arbiter_i 
                     (.clock(clk), .reset(reset), .read(read), .write(write),
                      .bank_n(i[3:0]), .addr_in(addr_in), .data_in(data_in), 
-                     .data_out(data_out), .finish(finish)
+                     .data_out(data_out), .finish(finish_array[i[3:0]])
                     );
 	end
 endgenerate
