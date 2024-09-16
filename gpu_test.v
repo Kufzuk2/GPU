@@ -19,6 +19,15 @@ module gpu_test;
     reg                    prog_loading;
     reg [15: 0]                 tm_line;
 
+
+/// for outfiles
+	reg [8 * 29: 1] output_file;
+	reg [     3: 0]    bank_num;
+	reg [     1: 0]        flag;
+
+	integer h, out_dsp;
+/// for outfiles
+
     always 
         #1 clk = ~clk;
  
@@ -44,23 +53,6 @@ module gpu_test;
              .prog_loading    (    prog_loading),
              .data_frames_in  (  data_frames_in)
     );
-
-
-/*
-    scheduler #(.DATA_DEPTH(1024), .R0_DATA_SIZE(128), .CTRL_DATA_SIZE(48), 
-                .INSTR_SIZE(16),   .FRAME_SIZE(256),   .FRAME_NUM(64),
-                .CORE_NUM(16),     .BUS_TO_CORE(16),   .R0_DEPTH(8))       scheduler
-                        (
-                         .clk             (             clk),
-                         .reset           (           reset),
-                         .core_ready      (      core_ready),
-                         .core_reading    (    core_reading),
-                         .prog_loading    (    prog_loading),
-                         .data_frames_in  (  data_frames_in)
-
-    );
-*/
-
 
 
     initial begin
@@ -294,6 +286,39 @@ module gpu_test;
     end
     end
 
+/*
+    initial begin
+
+		flag     =   2'b0;
+		bank_num = bank_n;
+
+		for (k = 0; k < 16; k = k + 1) begin
+			if(k[3 : 0] == bank_n) begin
+				if(k[3:0] < 10)
+					output_file = {"out_data/bank_", "0" + k[7:0]        , ".txt"};
+				else
+					output_file = {"out_data/bank_", "a" + k[7:0] - 8'd10, ".txt"};
+				
+				k = 16;
+			end
+		end
+
+        while(flag < 2'b01)  begin
+            k = 0;
+            out_dsp = $fopen(output_file);
+        end
+
+		for(k = 0; k < 256; k = k + 1) begin
+			if((k[7:0] + 1) % 64)
+				$fwrite(out_dsp, " ");
+
+			$fwrite(out_dsp, "%d %t\n", mem[k[7:0]], $time);
+		end
+		
+		$fclose(out_dsp);
+    end
+*/
+
 	initial begin 
 		$dumpfile("dump.vcd"); $dumpvars(0, gpu_test);
         #10;
@@ -301,7 +326,7 @@ module gpu_test;
         #10;
 
         for (i = 191; i < 1024; i = i + 1) begin
-            data_frames_in[i] = $random;
+            data_frames_in[i] = 0;
         end
         #20;
         prog_loading = 0;
