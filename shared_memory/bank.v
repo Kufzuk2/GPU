@@ -1,4 +1,4 @@
-//`define SIMUL_MODE
+`define SIMUL_MODE
 
 module bank (
 	input   wire        clock,
@@ -39,52 +39,43 @@ always @(posedge clock) begin
 	finish <= !reset & (write | read) ? 1'b1 : 1'b0;
 end
 
-
 `ifdef SIMUL_MODE
 	reg [8 * 29:1] output_file;
 
 	reg [3:0] bank_num;
-	reg [1:0]     flag;
+
+	//reg 	  was_posedge_rst;
+	reg	  was_negedge_rst;
 
 	integer k, out_dsp;
 
 	initial begin
 		
-		//prev_reset = 1'b1;
-		//while(!reset) was_reset = 1'b0;
-		
-		flag = 2'b0;
-		bank_num = bank_n;
-		for(k = 0; k < 16; k = k + 1) begin
-			if(k[3:0] == bank_n) begin
-				if(k[3:0] < 10)
-					output_file = {"shared_memory/data/bank_", "0" + k[7:0]        , ".txt"};
-				else
-					output_file = {"shared_memory/data/bank_", "a" + k[7:0] - 8'd10, ".txt"};
-				
-				k = 16;
-			end
-		end
+		bank_num        = bank_n;
+		//was_posedge_rst = 1'b0;
+		was_negedge_rst = 1'b0;
 
-		while(flag < 2'b01) k = 0;
-		out_dsp = $fopen(output_file);
-		for(k = 0; k < 256; k = k + 1) begin
-			if((k[7:0] + 1) % 64)
-				$fwrite(out_dsp, " ");
-
-			$fwrite(out_dsp, "%d %t\n", mem[k[7:0]], $time);
-		end
-		
-		$fclose(out_dsp);
 	end
 
-	/*always @(posedge clock) begin
-		if(prev_reset == 1'b0 & reset == 1'b1) begin
-			out_dsp = $fopen(output_file);
-			if(out_dsp == 0) begin
-				$display("Cannot open file %s!\n", output_file);
-				$finish;
+
+       always @(negedge reset) begin
+	       was_negedge_rst <= 1'b1;	
+       end
+
+       always @(posedge reset) begin
+
+	       if(was_negedge_rst) begin
+		       for(k = 0; k < 16; k = k + 1) begin
+			       if(k[3:0] == bank_num) begin
+				       if(k[3:0] < 10)
+					       output_file = {"shared_memory/data/bank_", "0" + k[7:0]        , ".txt"};
+				       else
+					       output_file = {"shared_memory/data/bank_", "a" + k[7:0] - 8'd10, ".txt"};
+				       k = 16;
+				end
 			end
+
+			out_dsp = $fopen(output_file);
 
 			for(k = 0; k < 256; k = k + 1) begin
 				if((k[7:0] + 1) % 64)
@@ -95,10 +86,6 @@ end
 		
 			$fclose(out_dsp);
 		end
-	end*/
-
-       always @(posedge reset) begin
-		flag <= flag + 1;	
        end
 
 
