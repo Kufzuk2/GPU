@@ -34,7 +34,9 @@ def main():
     # Визуализация
     plt.imshow(color_array, interpolation='nearest')
     plt.axis('off')  # Убираем оси
-    plt.show()
+
+    plt.savefig('ouput.png', bbox_inches='tight', pad_inches=0)
+    plt.close()
 
 if __name__ == "__main__":
     main()
