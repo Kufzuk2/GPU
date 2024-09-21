@@ -68,9 +68,9 @@ end
 		       for(k = 0; k < 16; k = k + 1) begin
 			       if(k[3:0] == bank_num) begin
 				       if(k[3:0] < 10)
-					       output_file = {"shared_memory/data/bank_", "0" + k[7:0]        , ".txt"};
+					       output_file = {"result/bank_", "0" + k[7:0]        , ".txt"};
 				       else
-					       output_file = {"shared_memory/data/bank_", "a" + k[7:0] - 8'd10, ".txt"};
+					       output_file = {"result/bank_", "a" + k[7:0] - 8'd10, ".txt"};
 				       k = 16;
 				end
 			end
