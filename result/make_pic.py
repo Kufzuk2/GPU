@@ -1,27 +1,44 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Функция для чтения данных из файлов
 def read_data(filenames):
     data = np.zeros((64, 64), dtype=int)
+    
     for file_index, filename in enumerate(filenames):
         with open(filename, 'r') as file:
-            lines = file.readlines()
-            for row_index, line in enumerate(lines):
-                numbers = list(map(int, line.split()))
-                column_index = (file_index * 4 + row_index) % 64
-                data[column_index] = numbers
+            # Читаем единственную строку
+            line = file.readline().strip()
+            numbers = line.split()
+            
+            # Проверяем, что количество значений соответствует 256 или есть 'x'
+            if len(numbers) != 256:
+                raise ValueError(f"Файл {filename} должен содержать ровно 256 значений.")
+
+            # Заполняем данные в массив
+            for i in range(64):  # Для каждого из 64 значений
+                column_index = file_index * 4 + i // 64  # Индекс столбца
+                value = numbers[i]
+                if value == 'x':
+                    data[i % 64, column_index] = -1  # Используем -1 для обозначения красного пикселя
+                else:
+                    data[i % 64, column_index] = int(value)
+
     return data
 
 # Функция для получения цвета по числу
 def get_color(value):
-    return (value / 255, value / 255, value / 255)  # Нормализуем значение в диапазон [0, 1]
+    if value == -1:  # Если значение -1, это красный цвет
+        return (1.0, 0.0, 0.0)  # RGB (1, 0, 0) - красный
+    else:
+        return (value / 255, value / 255, value / 255)  # Нормализуем значение в диапазон [0, 1]
 
 # Основная программа
 def main():
     # Имена файлов
-    filenames = [f'file_{i+1}.txt' for i in range(16)]  # Например: file_1.txt, file_2.txt, ..., file_16.txt
-    
+    filenames = [f'bank_{i:x}.txt' for i in range(16)]  # Например: file_0.txt, file_1.txt, ..., file_15.txt
+
     # Чтение данных
     pixel_values = read_data(filenames)
 
@@ -34,10 +51,8 @@ def main():
     # Визуализация
     plt.imshow(color_array, interpolation='nearest')
     plt.axis('off')  # Убираем оси
-
-    plt.savefig('ouput.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig('output.png', bbox_inches='tight', pad_inches=0)
     plt.close()
 
 if __name__ == "__main__":
     main()
-

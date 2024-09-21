@@ -81,7 +81,7 @@ end
 				if((k[7:0] + 1) % 64)
 					$fwrite(out_dsp, " ");
 
-				$fwrite(out_dsp, "%d %t\n", mem[k[7:0]], $time);
+				$fwrite(out_dsp, "%d ", mem[k[7:0]]);
 			end
 		
 			$fclose(out_dsp);

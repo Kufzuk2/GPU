@@ -347,7 +347,7 @@ module gpu_test;
         #50;
 
 
-//        #40500;
+        #40500;
         $finish;
 	end
 
