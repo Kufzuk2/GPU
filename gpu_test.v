@@ -63,7 +63,10 @@ module gpu_test;
 
     for (k = 0; k < 1024; k = k + 1) begin 
         case (k) 
-            
+
+        ///control frame. waiting for 1 IF
+        ///    all r0 initialized
+        //
         0: tm_line = {12'h0, 4'h1};                                                                                                                                                                                                                  
         1: tm_line = {16'hfffe};                                                                                                                                                                                                                     
         2: tm_line = {16'hfffe};                                                                                                                                                                                                                     
@@ -81,14 +84,21 @@ module gpu_test;
         14: tm_line = {8'hc0, 8'hd0};                                                                                                                                                                                                               
         15: tm_line = {8'he0, 8'hf0};   
                                                                                                                                                                                                                     
-        // except for 1st core                                                                                                                                                                                                                       
-        16: tm_line = {`OPCODE_SET_CONST, 8'h0, `R3};                                                                                                                                                                                               
+        /// must be used 15 cores except for 1s core
+        /// store bank_id, addr_in_bank, what to store
+        /// R15  -  current address
+        //
+        16: tm_line = {`OPCODE_SET_CONST, 8'h0, `R3};  // R3 = core_id                                                                                                                                                                                             
         17: tm_line = {`OPCODE_SET_CONST, 8'h4, `R9};                                                                                                                                                                                               
         18: tm_line = {`OPCODE_SET_CONST, 8'd252, `R10};                                                                                                                                                                                            
         19: tm_line = {`OPCODE_SET_CONST, 8'h1,   `R12};                                                                                                                                                                                            
         // tm_line = {21, `OPCODE_BNZ, `R8, 4'ha, 4'h0}; // remember about target + 4'h0                                                                                                                                                             
         20: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of R3                                                                                                                                                             
+        
+        // r15 starts from 4!!!!
         21: tm_line = {`OPCODE_ADD, `R15, `R9, `R15}; // addr ++                                                                                                                                                                                   
+        //!!!!!!!!!!!!!!!!!!!!!i
+        //
         // tm_line = {24, `OPCODE_ADD, `R11, `R11, `R12}; // counter += 1; // counter === addr r11 = r15                                                                                                                                             
         22: tm_line = {`OPCODE_MUL, `R3, `R9, `R6};
         23: tm_line = {`OPCODE_SUB, `R6, `R15, `R4};                                                                                                                                                                                                  
