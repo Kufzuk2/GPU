@@ -96,19 +96,20 @@ module gpu_test;
         20: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of R3                                                                                                                                                             
         
         // r15 starts from 4!!!!
-        21: tm_line = {`OPCODE_ADD, `R15, `R9, `R15}; // addr ++                                                                                                                                                                                   
+        21: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
         //!!!!!!!!!!!!!!!!!!!!!i
         //
         // tm_line = {24, `OPCODE_ADD, `R11, `R11, `R12}; // counter += 1; // counter === addr r11 = r15                                                                                                                                             
         22: tm_line = {`OPCODE_MUL, `R3, `R9, `R6};
         23: tm_line = {`OPCODE_SUB, `R6, `R15, `R4};                                                                                                                                                                                                  
         24: tm_line = {`OPCODE_BNZ, `R4, 4'h4, 4'h0}; // addr = counter != id -> jmp back; // target                                                                                                                                                 
-        25: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of RE                                                                                                                                                             
-        26: tm_line = {`OPCODE_ADD, `R0, `R9, `R0}; // val += 4                                                                                                                                                                                     
-        27: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of RE                                                                                                                                                             
-        28: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
-        29: tm_line = {`OPCODE_SUB, `R10, `R0, `R4}; // 255 - val                                                                                                                                                                                   
-        30: tm_line = {`OPCODE_BNZ, `R4, 4'h9, 4'h0}; // if 0 back; // TARGET                                                                                                                                                                       
+        //
+        25: tm_line = {`OPCODE_ADD, `R0, `R9, `R0}; // val += 4                                                                                                                                                                                     
+        26: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of RE                                                                                                                                                             
+        27: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
+        28: tm_line = {`OPCODE_SUB, `R10, `R0, `R4}; // 255 - val                                                                                                                                                                                   
+        29: tm_line = {`OPCODE_BNZ, `R4, 4'h9, 4'h0}; // if 0 back; // TARGET                                                                                                                                                                       
+        30: tm_line = {`OPCODE_NOP, 12'h0};
         31: tm_line = {`OPCODE_READY, 12'h0}; // extra                                                                                                                                                                                              
 
         32: tm_line = {12'h0, 4'h1};                                                                                                                                                                                                                 
@@ -353,11 +354,11 @@ module gpu_test;
         #450;
         #450;
         #450;
-        reset = 1;
-        #50;
 
 
         #40500;
+        reset = 1;
+        #50;
         $finish;
 	end
 
