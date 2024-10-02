@@ -23,6 +23,9 @@ data_in:
 	vvp a.out
 	gtkwave dump.vcd
 
+exec:
+	iverilog gpu.v gpu_test.v -D ALL
+	./a.out
 
 trace:
 	iverilog gpu.v gpu_test.v -D ALL -D CUR_FR_D -D REG_D -D DATA_IN
