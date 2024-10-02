@@ -16,3 +16,8 @@ compile:
 
 compile2:
 	iverilog ../testbench.v ../new_sched.v  -o ex.out
+
+old:
+	iverilog ../test_old.v ../scheduler.v  -o old_ex.out
+	vvp old_ex.out
+	gtkwave old_dump.vcd

@@ -5,7 +5,7 @@ module test_old;
 
     reg clk;
     reg reset;
-    reg core_reading;
+    reg [15: 0] core_reading;
     reg [DATA_DEPTH - 1: 0][15: 0] data_frames_in;
     reg [15: 0]              core_ready;
     reg                    prog_loading;
@@ -47,12 +47,12 @@ initial begin
         clk          <= 0;
         reset        <= 1;
         core_ready   <= 16'hffff;
-        core_reading <= 1;
+        core_reading <= 16'hffff;;
         prog_loading <= 1;
     end
 
 	initial begin 
-		$dumpfile("dump.vcd"); $dumpvars(0, testbench);
+		$dumpfile("old_dump.vcd"); $dumpvars(0, test_old);
         #10;
         reset = 0;
         #10;
@@ -62,8 +62,9 @@ initial begin
 
         for (i = 3; i < 64; i = i + 1) begin
             data_frames_in[i] = $random;
+            $display ("instruction[%d] = %h \n", i, data_frames_in[i]);
         end
-
+        $display ("\n");
         
 
         data_frames_in[64]  =  16'h0003;
@@ -72,7 +73,9 @@ initial begin
 
         for (i = 67; i < 128; i = i + 1) begin
             data_frames_in[i] = $random;
+            $display ("instruction[%d] = %h \n", i, data_frames_in[i]);
         end
+        $display ("\n");
 
 
 
@@ -82,7 +85,9 @@ initial begin
 
         for (i = 131; i < 256; i = i + 1) begin
             data_frames_in[i] = $random;
+            $display ("instruction[%d] = %h \n", i, data_frames_in[i]);
         end
+        $display ("\n");
 
         data_frames_in[256]  =  16'h008f;  // must not start before every core is free
         data_frames_in[257]  =  16'h0f00;
@@ -90,7 +95,9 @@ initial begin
 
         for (i = 259; i < 1024; i = i + 1) begin
             data_frames_in[i] = $random;
+            $display ("instruction[%d] = %h \n", i, data_frames_in[i]);
         end
+        $display ("\n");
 
 
 
