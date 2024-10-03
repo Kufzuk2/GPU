@@ -104,12 +104,13 @@ module gpu_test;
         24: tm_line = {`OPCODE_BNZ, `R4, 4'h4, 4'h0}; // addr = counter != id -> jmp back; // target                                                                                                                                                 
         25: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // to write core_id * 4 + 1 cell
         //
-        26: tm_line = {`OPCODE_ADD, `R0, `R9, `R0}; // val += 4                                                                                                                                                                                     
-        27: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of RE                                                                                                                                                             
-        28: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
-        29: tm_line = {`OPCODE_SUB, `R10, `R0, `R4}; // 255 - val                                                                                                                                                                                   
-        30: tm_line = {`OPCODE_BNZ, `R4, 4'h9, 4'h0}; // if 0 back; // TARGET                                                                                                                                                                       
-        31: tm_line = {`OPCODE_READY, 12'h0}; // extra                                                                                                                                                                                              
+        26: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
+        27: tm_line = {`OPCODE_ADD, `R0, `R9, `R0}; // val += 4                                                                                                                                                                                     
+        28: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; // need to cut out first bits of RE                                                                                                                                                             
+        29: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++                                                                                                                                                                                   
+        30: tm_line = {`OPCODE_SUB, `R10, `R0, `R4}; // 255 - val                                                                                                                                                                                   
+        31: tm_line = {`OPCODE_BNZ, `R4, 4'hB, 4'h0}; // if 0 back; // TARGET                                                                                                                                                                       
+        //31: tm_line = {`OPCODE_READY, 12'h0}; // extra                                                                                                                                                                                              
 
 
 
@@ -169,6 +170,7 @@ module gpu_test;
         79: tm_line = {8'he4, 8'hf4};
 
 
+        /// 
         80: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; 
         81: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++
         82: tm_line = {`OPCODE_ADD, `R3, `R12, `R5}; // some kind of +=1 to coreid to catch diagonal
