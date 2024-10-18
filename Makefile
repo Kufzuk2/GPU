@@ -1,11 +1,15 @@
 all:
-	iverilog gpu.v new_test.v -D ALL
-	vvp a.out
-	gtkwave dump.vcd
+	iverilog gpu.v gpu_test.v -D ALL
+	python3 result/make_pic.py
+	gthumb result/output.png
 
 compile:
 	iverilog gpu.v gpu_test.v -D ALL
 wave:
+	iverilog gpu.v gpu_test.v -D ALL
+	python3 result/make_pic.py
+	gthumb result/output.png
+	vvp a.out
 	gtkwave dump.vcd
 	
 reg_data:

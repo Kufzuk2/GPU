@@ -95,7 +95,7 @@ def translate_asm_to_bin(input_file, output_file):
             outfile.write(binary_code + '\n')
 
 if __name__ == "__main__":
-    input_filename = "shader.v"  # Укажите имя входного файла здесь
+    input_filename = "shaders/shader1.v"  # Укажите имя входного файла здесь
     output_filename = "bin_shader.bin"  # Имя выходного файла
 
     translate_asm_to_bin(input_filename, output_filename)

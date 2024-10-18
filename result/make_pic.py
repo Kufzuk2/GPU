@@ -37,7 +37,7 @@ def get_color(value):
 # Основная программа
 def main():
     # Имена файлов
-    filenames = [f'bank_{i:x}.txt' for i in range(16)]  # Например: file_0.txt, file_1.txt, ..., file_15.txt
+    filenames = [f'result/bank_{i:x}.txt' for i in range(16)]  # Например: file_0.txt, file_1.txt, ..., file_15.txt
 
     # Чтение данных
     pixel_values = read_data(filenames)
