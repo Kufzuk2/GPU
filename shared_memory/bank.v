@@ -63,6 +63,7 @@ end
        end
 
        always @(posedge reset) begin
+        //        $display("0");
 
 	       if(was_negedge_rst) begin
 		       for(k = 0; k < 16; k = k + 1) begin
@@ -74,6 +75,7 @@ end
 				       k = 16;
 				end
 			end
+          //      $display("0");
 
 			out_dsp = $fopen(output_file);
 
@@ -85,8 +87,8 @@ end
 			end
 		
 			$fclose(out_dsp);
-		end
-       end
+		    end
+        end // of always
 
 
 `endif
