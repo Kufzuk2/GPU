@@ -1,5 +1,5 @@
 all:
-	iverilog gpu.v gpu_test.v -D ALL
+	iverilog gpu.v new_test.v -D ALL
 	vvp a.out
 	gtkwave dump.vcd
 

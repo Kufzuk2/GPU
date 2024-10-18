@@ -3,9 +3,7 @@
 `timescale 1ns/100ps
 
 module gpu_test;
-    parameter  DATA_DEPTH = 1024;
 
-    reg clk;
     reg reset;
     reg [DATA_DEPTH - 1: 0][15: 0] data_frames_in;
     wire               frame_being_sent;
@@ -261,7 +259,7 @@ module gpu_test;
 
 
         160: tm_line = {12'h0, 4'h1};
-        161: tm_line = {16'h8000}; // only 1st core
+        161: tm_line = {16'h8000}; 
         162: tm_line = {16'h8000};
         163: tm_line = {16'h0};
         164: tm_line = {16'h0};
@@ -275,15 +273,15 @@ module gpu_test;
         172: tm_line = {16'h0};
         173: tm_line = {16'h0};
         174: tm_line = {16'h0};
+        175: tm_line = {16'h0};
 
 
-        175: tm_line = {`OPCODE_SET_CONST, 8'h3f, `R10}; // R7 counter
-        176: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; 
-        177: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++
-        178: tm_line = {`OPCODE_ADD, `R15, `R12, `R7}; // counter ++
-        179: tm_line = {`OPCODE_SUB, `R10, `R7, `R4}; // 255 - val
-        180: tm_line = {`OPCODE_BNZ, `R4, 4'h1, 4'h0}; // if 0 back; TARGET
-        181: tm_line = {`OPCODE_NOP, 12'h0};
+        176: tm_line = {`OPCODE_SET_CONST, 8'h3f, `R10}; // R7 counter
+        177: tm_line = {`OPCODE_ST, `R3, `R15, `R0}; 
+        178: tm_line = {`OPCODE_ADD, `R15, `R12, `R15}; // addr ++
+        179: tm_line = {`OPCODE_ADD, `R15, `R12, `R7}; // counter ++
+        180: tm_line = {`OPCODE_SUB, `R10, `R7, `R4}; // 255 - val
+        181: tm_line = {`OPCODE_BNZ, `R4, 4'h1, 4'h0}; // if 0 back; TARGET
         182: tm_line = {`OPCODE_NOP, 12'h0};
         183: tm_line = {`OPCODE_NOP, 12'h0};
         184: tm_line = {`OPCODE_NOP, 12'h0};
@@ -292,7 +290,8 @@ module gpu_test;
         187: tm_line = {`OPCODE_NOP, 12'h0};
         188: tm_line = {`OPCODE_NOP, 12'h0};
         189: tm_line = {`OPCODE_NOP, 12'h0};
-        190: tm_line = {`OPCODE_READY, 12'h0}; // extra
+        190: tm_line = {`OPCODE_NOP, 12'h0};
+        191: tm_line = {`OPCODE_READY, 12'h0}; // extra
 
 
        //     default: {16'h0}; // Обработка остальных случаев (опционально, можно оставить пустым)
