@@ -56,6 +56,9 @@ module scheduler
     reg [ 9: 0]   global_tp;   // [3:0] = tp, [9:4] = frame 
     reg [ 1: 0]       fence;   // barrier . will be deleted. Now needed only for easy testing (about wires)
     reg             wait_it;
+    
+    wire end_prog;
+    assign end_prog = (global_tp == 10'h3ff);
 
     reg no_collision;
     reg rel_stop;
@@ -281,7 +284,7 @@ module scheduler
         else if ((write_en) & if_num == 0 & global_tp[3: 0] == 2)
             global_tp <= global_tp + 10'h6;  //step over empty space
         
-        else if (write_en & (if_num != 0 | global_tp[3: 0] != 2)
+        else if (~end_prog & write_en & (if_num != 0 | global_tp[3: 0] != 2)
                  & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
                  & ( if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg

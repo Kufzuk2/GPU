@@ -1,6 +1,7 @@
 all:
 	python3 src_data/trans_bin.py
 	iverilog gpu.v gpu_test.v -D ALL
+	./a.out
 	python3 result/make_pic.py
 	gthumb result/output.png
 

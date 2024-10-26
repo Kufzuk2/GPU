@@ -35,7 +35,7 @@ NOP 12'h0
 READY 12'h0
 #32
 
-
+#1st column
 12'h0 4'h1
 16'hfffe
 16'hfffe
@@ -103,7 +103,7 @@ SUB R10 R0 R4
 BNZ R4 4'h4 4'h0
 ST R3 R15 R0
 ADD R15 R12 R15
-NOP 12'h0
+ADD R0 R9 R0
 NOP 12'h0
 NOP 12'h0
 NOP 12'h0
@@ -147,9 +147,11 @@ BNZ R4 4'ha 4'h0
 READY 12'h0
 #128
 
+
+#3rd lines
 12'h0 4'h1
-16'hfffe
-16'hfffe
+16'hffff
+16'hffff
 16'h0
 16'h0
 16'h0
@@ -164,6 +166,7 @@ READY 12'h0
 8'hc8 8'hd8
 8'he8 8'hf8
 
+#3rd lines
 ST R3 R15 R0
 ADD R15 R12 R15
 ADD R3 R12 R5
@@ -199,6 +202,7 @@ READY 12'h0
 8'hac 8'hbc
 8'hcc 8'hdc
 8'hec 8'hfc
+
 ST R3 R15 R0
 ADD R15 R12 R15
 ADD R3 R12 R5
@@ -215,6 +219,7 @@ NOP 12'h0
 NOP 12'h0
 NOP 12'h0
 READY 12'h0
+
 12'h0 4'h1
 16'h8000
 16'h8000

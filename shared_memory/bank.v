@@ -63,7 +63,7 @@ end
        end
 
        always @(posedge reset) begin
-        //        $display("0");
+       //         $display("0");
 
 	       if(was_negedge_rst) begin
 		       for(k = 0; k < 16; k = k + 1) begin
