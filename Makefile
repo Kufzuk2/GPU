@@ -1,4 +1,5 @@
 all:
+	python3 src_data/trans_bin.py
 	iverilog gpu.v gpu_test.v -D ALL
 	python3 result/make_pic.py
 	gthumb result/output.png
@@ -6,9 +7,9 @@ all:
 compile:
 	iverilog gpu.v gpu_test.v -D ALL
 wave:
+	python3 src_data/trans_bin.py
 	iverilog gpu.v gpu_test.v -D ALL
 	python3 result/make_pic.py
-	gthumb result/output.png
 	vvp a.out
 	gtkwave dump.vcd
 	

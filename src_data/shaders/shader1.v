@@ -1,3 +1,41 @@
+#frame for setting constants
+
+12'h0 4'h1
+16'hfffe
+16'hfffe
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+16'h0
+
+SET_CONST 8'h0 R3
+SET_CONST 8'h4 R9
+SET_CONST 8'hfc R10
+SET_CONST 8'h1  R12
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+READY 12'h0
+#32
+
+
 12'h0 4'h1
 16'hfffe
 16'hfffe
@@ -15,25 +53,27 @@
 8'hc0 8'hd0
 8'he0 8'hf0
 
-SET_CONST 8'h0 R3
-SET_CONST 8'h4 R9
-SET_CONST 8'hfc R10
-SET_CONST 8'h1  R12
 ST R3 R15 R0
 ADD R15 R12 R15
 MUL R3 R9 R6
 SUB R6 R15 R4
-BNZ R4 4'h4 4'h0
+BNZ R4 4'h0 4'h0
 ST R3 R15 R0
 ADD R15 R12 R15
 ADD R0 R9 R0
 ST R3 R15 R0
 ADD R15 R12 R15
 SUB R10 R0 R4
-BNZ R4 4'hB 4'h0
-
+BNZ R4 4'h7 4'h0
+NOP 12'h0
+NOP 12'h0
+NOP 12'h0
+READY 12'h0
+#64
 #commentariy
 
+
+#frame only for 1st core
 12'h0 4'h1
 16'h1
 16'h1
@@ -50,6 +90,8 @@ BNZ R4 4'hB 4'h0
 16'h0
 16'h0
 16'h0
+
+#frame only for 1st core
 SET_CONST 8'h0 R3
 SET_CONST 8'h4 R9
 SET_CONST 8'hfc R10
@@ -60,12 +102,15 @@ ADD R15 R12 R15
 SUB R10 R0 R4
 BNZ R4 4'h4 4'h0
 ST R3 R15 R0
-NOP 12'h0
+ADD R15 R12 R15
 NOP 12'h0
 NOP 12'h0
 NOP 12'h0
 NOP 12'h0
 READY 12'h0
+#96
+
+#2nd lines
 12'h0 4'h1
 16'hffff
 16'hffff
@@ -82,22 +127,26 @@ READY 12'h0
 8'ha4 8'hb4
 8'hc4 8'hd4
 8'he4 8'hf4
+
+#2nd lines
+SET_CONST 8'h40 R8
+MUL R3 R9 R5
+ADD R5 R12 R5
+ADD R5 R8 R5
 ST R3 R15 R0
 ADD R15 R12 R15
-ADD R3 R12 R5
 SUB R5 R15 R4
-BNZ R4 4'h0 4'h0
+BNZ R4 4'h4 4'h0
 ST R3 R15 R0
+ADD R15 R12 R15
 ADD R0 R9 R0
 ST R3 R15 R0
 ADD R15 R12 R15
 SUB R10 R0 R4
-BNZ R4 4'h6 4'h0
-NOP 12'h0
-NOP 12'h0
-NOP 12'h0
-NOP 12'h0
+BNZ R4 4'ha 4'h0
 READY 12'h0
+#128
+
 12'h0 4'h1
 16'hfffe
 16'hfffe
@@ -114,6 +163,7 @@ READY 12'h0
 8'ha8 8'hb8
 8'hc8 8'hd8
 8'he8 8'hf8
+
 ST R3 R15 R0
 ADD R15 R12 R15
 ADD R3 R12 R5
@@ -130,6 +180,9 @@ NOP 12'h0
 NOP 12'h0
 NOP 12'h0
 READY 12'h0
+
+
+
 12'h0 4'h1
 16'hffff
 16'hffff
