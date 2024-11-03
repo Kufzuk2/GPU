@@ -20,7 +20,8 @@ module gpu_core_1(
 	output reg ready // READY signal to TS
 	);
 	parameter [3:0] RI = 0,F = 1, D = 2, E = 3, M = 4, M_W = 5, WB = 6, NA = 7;
-	reg [3:0] state = RI;
+	//reg [3:0] state = RI;
+	reg [3:0] state;
 	
 	// Internal registers
 	reg [7:0] RF [0:15]; // Register File
@@ -48,7 +49,25 @@ module gpu_core_1(
 	reg [4:0] i ;
 	reg [4:0] counter_ri;
 	//integer count = 0;
-	reg cos = 1;
+	//reg cos = 1;
+
+    reg cos1;
+    always @(posedge clk) begin
+        if (reset)
+            cos1 <= 1;
+        else
+            cos1 <= (state == RI) ? 1 :
+                    (state == D)  ? 0 :
+                                  cos1;
+    end
+
+/*
+    // state logic
+    always @(posedge clk) begin
+        if (reset)
+            state <= RI;
+        else
+*/
 
 
     reg [7:0] RF_0;
@@ -119,7 +138,7 @@ module gpu_core_1(
 		begin
 			if (!(reset)&&(state==RI)) 
 				begin
-					cos = 1;
+					//cos1 <= 1;
 					rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
@@ -175,7 +194,7 @@ module gpu_core_1(
 							PC_D <= br_target;
 						end
 					else
-						if (cos)
+						if (cos1)
 							begin 
 								PC <= 0;
 								PC_D <= PC;
@@ -197,7 +216,7 @@ module gpu_core_1(
 		begin 
 			if (!(reset)&&(state==D)) 
 				begin
-					cos <= 0;
+					//cos1 <= 0;
 					IR_E <= IR_D;
 					PC_E <= PC_D;
 					if(IR_D[15:12]==13)
