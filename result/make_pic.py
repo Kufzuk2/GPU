@@ -26,7 +26,7 @@ def read_data(filenames):
             column += 1
 
     np.set_printoptions(threshold=sys.maxsize)
-    print(data)
+    #print(data)
     return data
 
 def get_color(value):
