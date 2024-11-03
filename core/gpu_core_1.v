@@ -138,7 +138,6 @@ module gpu_core_1(
 		begin
 			if (!(reset)&&(state==RI)) 
 				begin
-					//cos1 <= 1;
 					rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
@@ -216,7 +215,6 @@ module gpu_core_1(
 		begin 
 			if (!(reset)&&(state==D)) 
 				begin
-					//cos1 <= 0;
 					IR_E <= IR_D;
 					PC_E <= PC_D;
 					if(IR_D[15:12]==13)
