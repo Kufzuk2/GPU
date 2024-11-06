@@ -1,36 +1,55 @@
-//`include "scheduler.v"
-//`include "bank_arbiter.v"
-//`include "gpu_core_1.v"
-
-
 
 module gpu(
-	input wire clk,
- 	input wire reset,
+	input wire clk,  // ASSIGN CLOCK_50
+ 	input wire KEY0, // ASSIGN KEY_0
 
-	input  wire prog_loading,
-	input  wire [1024  - 1: 0][15: 0] data_frames_in
+    // sdram for prog_loading
+    input  wire [15: 0]data_input, // ASSIGN SDRAM DQ_[15: 0]
+    output wire [9:  0]input_addr, // ASSIGN SDRAM_ADDR_[9: 0]
+    
+    output wire mem_clk, // ASSIGN DRAM_CLK
+    // ????
+    output wire mem_cke, // ASSIGN DRAM_CKE
+
+    
+	input  wire prog_loading, /// ??????
+	input  wire [1024  - 1: 0][15: 0] data_frames_in //// sdram
 );
+    wire [15 : 0] core_ready;
+    wire [15 : 0] read;
+    wire [15 : 0] write;
+    wire [15 : 0] finish;
+    wire [15 : 0] finish_array [15 : 0];
 
-wire [15 : 0] core_ready;
-wire [15 : 0] read;
-wire [15 : 0] write;
-wire [15 : 0] finish;
-wire [15 : 0] finish_array [15 : 0];
+    wire [191:0] addr_in;
+    wire [127:0] data_in;
+    wire [127:0] data_out;
 
-wire [191:0] addr_in;
-wire [127:0] data_in;
-wire [127:0] data_out;
-
-wire [15:0] gpu_core_reading;
-wire        final_core_reading;
-wire [15:0]       instruction;
-wire [ 3:0] masks;
+    wire [15:0] gpu_core_reading;
+    wire        final_core_reading;
+    wire [15:0]       instruction;
+    wire [ 3:0] masks;
 
     wire         r0_loading;
     wire  core_mask_loading;
     wire    r0_mask_loading;
     wire val_ins;
+
+    //for reset
+    reg but1;
+    reg but2;
+    reg reset;
+
+    //reset
+    always @(posedge clk) begin
+        but1 <=   KEY0;
+        but2 <= but0_1;
+    end
+    
+    always @(posedge clk)
+        reset <= ~but1 & but2;
+
+
 
 
 assign finish = finish_array[ 0] |  finish_array[ 1] |  finish_array[ 2] | finish_array[ 3] | finish_array[ 4] | finish_array[ 5] | finish_array[ 6] | finish_array[ 7] | 
@@ -73,6 +92,8 @@ scheduler gpu_scheduler
                       .data_frames_in(data_frames_in), 
                       .core_ready(core_ready), .mess_to_core(instruction)
                     );
+    input  wire [15: 0] data_input,
+    output wire [9:  0] input_addr,
 
 
 endmodule
