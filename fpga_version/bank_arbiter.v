@@ -1,16 +1,3 @@
-`ifdef ALL
-`include "shared_memory/bank.v"
-`include "shared_memory/round_robin.v"
-`endif
-`ifndef ALL
-`include "bank.v"
-`include "round_robin.v"
-`endif
-
-
-`timescale 1 ns / 100 ps
-`define SIMUL_MODE
-
 module bank_arbiter (
 	input wire clock,
 	input wire reset,
@@ -98,72 +85,5 @@ always @(posedge clock or posedge bank_finish) begin
 		finish <= 16'b0;
 		
 end
-
-`ifdef SIMUL_MODE
-	reg [8 * 36:1] output_file;
-
-	reg [3:0] bank_num;
-
-	reg was_posedge_rst;
-	reg was_negedge_rst;
-
-	integer k, out_dsp;
-
-	initial begin
-
-		bank_num 	= bank_n;
-		was_posedge_rst = 1'b0;
-		was_negedge_rst = 1'b0;
-	end
-
-	always @(posedge clock) begin
-
-		if(was_negedge_rst & !was_posedge_rst)
-		$fdisplay(out_dsp, "Core: %d, status(serv): %d, read: %d, write: %d, addr_in: %d, data_in: %d, data_out: %d, finish: %d at %0t.\n",
-		sel_core, core_serv, read[sel_core], write[sel_core], b_addr_in, b_data_in, b_data_out, finish[sel_core], $time);
-	end
-
-	always @(negedge reset) begin
-
-		//if(!was_posedge_rst) begin
-			for(k = 0; k < 16; k = k + 1) begin
-				if(k[3:0] == bank_num) begin
-					if(k[3:0] < 10)
-						output_file = {"shared_memory/tracing/bank_", "0" + k[7:0]        , "_trc.txt"};
-					else
-						output_file = {"shared_memory/tracing/bank_", "a" + k[7:0] - 8'd10, "_trc.txt"};
-				
-					k = 16;
-				end
-			end
-
-			out_dsp = $fopen(output_file);
-			/*if(out_dsp == 0) begin
-				$display("Cannot open file %s!\n", output_file);
-				$finish;
-			end*/
-
-		       was_negedge_rst = 1'b1;
-	       //end
-
-	       //else begin
-		 //      was_negedge_rst <= 1'b1;
-	       //end
-	end
-
-	always @(posedge reset) begin
-		if(was_negedge_rst) begin
-			was_posedge_rst <= 1'b1;
-
-			$fclose(out_dsp);
-		end
-		/*
-
-		else begin
-			was_posedge_rst <= 1'b1;
-		end*/
-	end
-
-`endif
 
 endmodule

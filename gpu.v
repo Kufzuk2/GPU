@@ -1,5 +1,5 @@
 `include "scheduler/scheduler.v"
-`include "shared_memory/shared_memory.v"
+`include "shared_memory/bank_arbiter.v"
 `include "core/gpu_core_1.v"
 
 

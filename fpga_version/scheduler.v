@@ -1,9 +1,9 @@
 
 `ifdef ALL
-    `include "scheduler/gpu_def.v"
+    `include "scheduler/sched_def.v"
 `endif    
 `ifndef ALL
-    `include "../gpu_def.v"
+    `include "sched_def.v"
 `endif    
 
 
@@ -24,9 +24,7 @@ module scheduler
     parameter    BUS_TO_CORE  =   16,
     parameter       R0_DEPTH  =    8
 )
-// Resolution and refresh rate  
     
-    //reploace all the magic numbers by parameters
 (
     input  wire clk,
     input  wire reset,
@@ -37,7 +35,6 @@ module scheduler
     output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
 
     output reg         r0_loading,
-    //output reg         if_loading,
     output reg  core_mask_loading,
     output reg    r0_mask_loading,
     output reg      instr_loading
@@ -157,23 +154,8 @@ module scheduler
             init_r0_vect                                                                               ;
     end
 
-/*
-    always @(posedge clk) begin // display block
-        if ( !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0)))
-            $display ("mess_to_core no change: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
-        else if ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2))                
-            $display ("mess_to_core r0 : %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
-        else if (if_num != 0)
-            $display ("mess_to_core  ins: %h , cur_fr[0] = %h", mess_to_core, cur_frame[0]);
-
-    end
-  */  
-
-
-
-    // display block
     
-            `ifdef REG_D
+    `ifdef REG_D
     always @(posedge clk) begin
         if (!prog_loading & global_tp != 10'h40 ) begin
             $display("******************************************************************** ");
@@ -184,9 +166,10 @@ module scheduler
             $display("******************************************************************** ");
         end
     end // must work as for r0 load as for instr mes
-            `endif
+    `endif
 
-            `ifdef CUR_FR_D
+    
+    `ifdef CUR_FR_D
       
     always @(posedge clk) begin
 
@@ -204,31 +187,6 @@ module scheduler
 
 
 
-
-
-        /*
-/// mess_to_core    reg  logic
-    always @(posedge clk) begin
-        if (reset)
-            mess_to_core <= 0;
-
-        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
-
-            mess_to_core[15: 0] <= last_mask;
-
-        else if (!prog_loading && core_reading && if_num == 0 && 
-                      global_tp[3: 0] == 2) 
-            mess_to_core[15: 0] <= init_r0_vect;
-        
-
-        else if (!prog_loading && core_reading  
-                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
-                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
-        else 
-            mess_to_core <= mess_to_core;
-    end
-
-*/
 
 
 //r0_loading flag reg logic
@@ -260,8 +218,8 @@ module scheduler
             r0_mask_loading <= 0;
         else
             r0_mask_loading <= (write_en & if_num == 0 & 
-                                global_tp[3: 0] == 2)                      ?
-            1: 0;
+                                global_tp[3: 0] == 2)  ?
+                                                   1: 0;
     end    
         
 //core_mask_loading flag reg logic
@@ -271,8 +229,8 @@ module scheduler
             core_mask_loading <= 0;
         else
             core_mask_loading <= (write_en & if_num == 0 & 
-                                  global_tp[3: 0] == 1)                      ?
-            1: 0;
+                                  global_tp[3: 0] == 1)  ?
+                                                     1: 0;
     end    
     
 
@@ -367,107 +325,5 @@ module scheduler
 
 
 
-
-
-/*
-    /// r0_loading reg logic
-    always @(posedge clk) begin
-        if (reset)
-            r0_loading <= 0;
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 2)
-            r0_loading <= 1;
-
-        else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 0)  // must be enough condition. must be checked
-            r0_loading <= 0;
-        else
-            r0_loading <= r0_loading;
-    end
-
-    
-    /// if_loading reg logic
-    always @(posedge clk) begin
-        if (reset)
-            if_loading <= 0;
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
-            if_loading <= 1;
-
-        else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 1)  // must be enough condition. must be checked
-            if_loading <= 1;
-        else
-            if_loading <= if_loading;
-    end
-
-    /// mask1_loading reg logic
-    always @(posedge clk) begin
-        if (reset)
-            core_mask_loading <= 0;
-        else if (!prog_loading && if_num == 0 && global_tp[3: 0] == 4'b1111)
-            core_mask_loading <= 1;
-
-        else if (!prog_loading && global_tp[3: 0] == 4'b1111 && if_num == 1)  // must be enough condition. must be checked
-            core_mask_loading <= 1;
-        else
-            core_mask_loading <= if_loading;
-    end
-
-    /// mask_loading
-
-*/
-
-
     endmodule
 
-/*
-/// mess_to_core    reg  logic
-    always @(posedge clk) begin
-        if (reset)
-            mess_to_core <= 0;
-
-        else if (!prog_loading && core_reading && if_num == 0 && global_tp[3: 0] == 1) // also was !waiting, but i suppose its useless here
-
-            mess_to_core[15: 0] <= last_mask;
-
-        else if (!prog_loading && core_reading && if_num == 0 && 
-                      global_tp[3: 0] == 2) 
-            mess_to_core[15: 0] <= init_r0_vect;
-        
-
-        else if (!prog_loading && core_reading  
-                && ((global_tp[3: 0] > 4'h2 && if_num == 0) || if_num != 0))
-                    mess_to_core[15: 0] <= cur_frame[global_tp[3: 0]]; 
-        else 
-            mess_to_core <= mess_to_core;
-    end
-
-
-
-
-
-
-
-*/
-    
-
-    /// regs for barriers checking 
-/*
-    always @(posedge clk) begin
-        if (reset) begin
-           no_collision <= 0;
-           rel_stop     <= 0;
-
-           end else begin
-            no_collision  <= ((last_mask & exec_mask == 0) || (exec_mask == 0));
-            rel_stop      <= !((fence == `SCHED_FENCE_REL) && exec_mask);
-            end
-        end
-
-    always @(posedge clk) begin
-        if (reset) begin
-           wait_not <= 1;
-           end else if (if_num == 0 && global_tp[3: 0] == 1) begin
-               wait_not <= no_wait_cf;
-           end else if (if_num == 0 && global_tp[3: 0] == 2) begin
-               wait_not <= 1;
-            end
-        end
-*/
