@@ -11,8 +11,6 @@ module gpu(
     // ????
     output wire mem_cke, // ASSIGN DRAM_CKE
 
-    
-	input  wire prog_loading, /// ??????
 	input  wire [1024  - 1: 0][15: 0] data_frames_in //// sdram
 );
     wire [15 : 0] core_ready;
@@ -35,20 +33,14 @@ module gpu(
     wire    r0_mask_loading;
     wire val_ins;
 
-    //for reset
-    reg but1;
-    reg but2;
-    reg reset;
 
-    //reset
-    always @(posedge clk) begin
-        but1 <=   KEY0;
-        but2 <= but0_1;
-    end
-    
-    always @(posedge clk)
-        reset <= ~but1 & but2;
-
+    button 
+    rst_but
+           (
+               .clk(clk),
+               .KEY(KEY0),
+               .skey(reset)
+           );
 
 
 
