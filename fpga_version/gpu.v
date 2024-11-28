@@ -3,11 +3,15 @@ module gpu(
 	input wire clk,  // ASSIGN CLOCK_50
  	input wire KEY0, // ASSIGN KEY_0
 
-    // sdram for prog_loading
-    input  wire [15: 0]data_input, // ASSIGN SDRAM DQ_[15: 0]
-    output wire [9:  0]input_addr, // ASSIGN SDRAM_ADDR_[9: 0]
+    // sram for prog_loading
+    input  wire [15: 0]data_input, // ASSIGN SRAM DQ_[15: 0]
+    output wire [19: 0]input_addr, // ASSIGN SRAM_ADDR_[9: 0]
     
-    output wire mem_clk, // ASSIGN DRAM_CLK
+    output wire mem_oen, // ASSIGN SRAM_OE_N
+    output wire mem_wen, // ASSIGN SRAM_WE_N
+    output wire mem_cen, // ASSIGN SRAM_CE_N
+    output wire mem_lbn, // ASSIGN SRAM_LB_N
+    output wire mem_ubn, // ASSIGN SRAM_UB_N
     // ????
     output wire mem_cke, // ASSIGN DRAM_CKE
 
@@ -32,7 +36,14 @@ module gpu(
     wire  core_mask_loading;
     wire    r0_mask_loading;
     wire val_ins;
+    
+    wire  reset;
 
+    assign mem_oen = 1;
+    assign mem_wen = 0;
+    assign mem_cen = 1; /// ??????
+    assign mem_lbn = 1;
+    assign mem_ubn = 0;
 
     button 
     rst_but
@@ -76,16 +87,12 @@ endgenerate
 
 
 
-scheduler gpu_scheduler 
+new_ts gpu_scheduler 
                     ( .clk(clk), .reset(reset),  .instr_loading(val_ins),
                       .r0_mask_loading(r0_mask_loading),     .core_mask_loading(core_mask_loading),
                       .r0_loading(r0_loading),             .core_reading(gpu_core_reading), 
-                      .prog_loading(prog_loading),
-                      .data_frames_in(data_frames_in), 
+                      .data_input(data_input), .input_addr(input_addr),
                       .core_ready(core_ready), .mess_to_core(instruction)
                     );
-    input  wire [15: 0] data_input,
-    output wire [9:  0] input_addr,
-
 
 endmodule

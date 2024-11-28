@@ -1,6 +1,6 @@
 `include "sched_def.v"
 
-module scheduler
+module new_ts
 #(
     parameter     DATA_DEPTH  = 1024,
     parameter   R0_DATA_SIZE  =  128,  
@@ -10,7 +10,8 @@ module scheduler
     parameter      FRAME_NUM  =   64,
     parameter       CORE_NUM  =   16,
     parameter    BUS_TO_CORE  =   16,
-    parameter       R0_DEPTH  =    8
+    parameter       R0_DEPTH  =    8,
+    parameter     START_ADDR  =    0
 )
 
 
@@ -19,20 +20,25 @@ module scheduler
     input  wire reset,
     input  wire [15: 0] core_reading,
     input  wire [15: 0] data_input,
-    input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
-    input  wire [CORE_NUM    - 1: 0]                        core_ready,  // may be better reverse it
-    output  reg [BUS_TO_CORE - 1: 0]                      mess_to_core,  //
+//    input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
+    input  wire [CORE_NUM    - 1: 0]   core_ready,  // may be better reverse it
+    output  reg [BUS_TO_CORE - 1: 0] mess_to_core,  //
 
-    output wire [9:  0] input_addr, 
+    output wire [19: 0] input_addr, 
     output reg          r0_loading,
     output reg   core_mask_loading,
     output reg     r0_mask_loading,
     output reg       instr_loading
 //change for wires where possible
 );
-   
+
+    assign input_addr = START_ADDR + {10'h0, mem_ptr, load_cnt} + prog_loading2;
+    reg [5: 0] mem_ptr;  
+
+
     reg prog_loading;
-    reg [15: 0] load_cnt;
+    reg prog_loading2;
+    reg [3: 0] load_cnt;
 
     always @(posedge clk) begin
         if (reset)
@@ -47,9 +53,27 @@ module scheduler
         if (reset)
             load_cnt <= 0;
         else
-            load_cnt <= ~prog_loading      ? 0 :
+            load_cnt <= ~(prog_loading & prog_loading2)  ? 0 :
                         (load_cnt == 4'hf) ? 0 : load_cnt + 1;
     end
+    
+    always @(posedge clk) begin
+        if (reset)
+            mem_ptr <= 0;
+        else
+            mem_ptr <= ~(prog_loading2 & (load_cnt == 4'hf)) ? 
+                         mem_ptr : mem_ptr + 1;
+    end
+
+    
+    always @(posedge clk) begin
+        if (reset)
+            prog_loading2 <= 0;
+        else
+            prog_loading2 <= prog_loading;
+    end
+
+
     
     genvar l;
     generate
@@ -58,7 +82,7 @@ module scheduler
             if (reset)
                 frame[l] <= 0;
             else
-                frame[l] <= (l == load_cnt) & (prog_loading) ? data_input : frame[l];
+                frame[l] <= (l == load_cnt) & (prog_loading2 & prog_loading) ? data_input : frame[l];
         end
     end
     endgenerate
@@ -111,11 +135,52 @@ module scheduler
     endgenerate
 
 
+    wire [INSTR_SIZE - 1: 0] fr0;
+    wire [INSTR_SIZE - 1: 0] fr1;
+    wire [INSTR_SIZE - 1: 0] fr2;
+    wire [INSTR_SIZE - 1: 0] fr3;
+    wire [INSTR_SIZE - 1: 0] fr4;
+    wire [INSTR_SIZE - 1: 0] fr5;
+    wire [INSTR_SIZE - 1: 0] fr6;
+    wire [INSTR_SIZE - 1: 0] fr7;
+    wire [INSTR_SIZE - 1: 0] fr8;
+    wire [INSTR_SIZE - 1: 0] fr9;
+    wire [INSTR_SIZE - 1: 0] fra;
+    wire [INSTR_SIZE - 1: 0] frb;
+    wire [INSTR_SIZE - 1: 0] frc;
+    wire [INSTR_SIZE - 1: 0] frd;
+    wire [INSTR_SIZE - 1: 0] fre;
+    wire [INSTR_SIZE - 1: 0] frf;
+    assign fr0 = frame[0];
+    assign fr1 = frame[1];
+    assign fr2 = frame[2];
+    assign fr3 = frame[3];
+    assign fr4 = frame[4];
+    assign fr5 = frame[5];
+    assign fr6 = frame[6];
+    assign fr7 = frame[7];
+    assign fr8 = frame[8];
+    assign fr9 = frame[9];
+    assign fra = frame[10];
+    assign frb = frame[11];
+    assign frc = frame[12];
+    assign frd = frame[13];
+    assign fre = frame[14];
+    assign frf = frame[15];
+
+
+
+
+
+
+
+
+
     wire [INSTR_SIZE - 1: 0]    last_mask_w;
     wire [             1: 0]        fence_w;
     
-    assign last_mask_w    =    cur_frame[1];
-    assign fence_w        =   (cur_frame[0]  & `SCHED_FENCE_MASK) >> 6;
+    assign last_mask_w    =    frame[1];
+    assign fence_w        =   (frame[0]  & `SCHED_FENCE_MASK) >> 6;
 
     assign flag1 = (((last_mask_w & exec_mask) == 0) | (exec_mask == 0)); 
     assign flag2 =  !((fence_w == `SCHED_FENCE_REL) & exec_mask != 0 );
@@ -159,7 +224,7 @@ module scheduler
 
         else
             init_r0_vect <= (write_en & if_num == 0 & global_tp[3: 0] == 0) ?
-            cur_frame[2] : init_r0_vect;
+            frame[2] : init_r0_vect;
     end
 
 
@@ -170,13 +235,11 @@ module scheduler
             mess_to_core <= 0;
 
         else 
-            mess_to_core <= !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0)
-            )
-                                                                                                       ? 
+            mess_to_core <= !(write_en) | ((if_num == 0) & (global_tp[3: 0] == 0))                     ? 
             mess_to_core                                                                               :
 
             ((if_num == 0 & global_tp[3: 0] != 1 & global_tp[3: 0] != 2) | if_num != 0)                ?
-            cur_frame[global_tp[3: 0]]                                                                 :
+            frame[global_tp[3: 0]]                                                                 :
             
             (if_num == 0 & global_tp[3: 0] == 1)                                                       ?
             last_mask                                                                                  : 
@@ -307,7 +370,7 @@ module scheduler
 
         else
             next_if_num <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
-            cur_frame[0] & `SCHED_IFNUM_MASK                                    :
+            frame[0] & `SCHED_IFNUM_MASK                                    :
             next_if_num                                                         ;
     end
 
@@ -328,7 +391,7 @@ module scheduler
             wait_it <= wait_it;
     end
 
-
+/*
     /// data_frames   reg  logic
     always @(posedge clk) begin
         if (prog_loading) begin
@@ -338,7 +401,7 @@ module scheduler
             end
         end
     end
-
+*/
 
             `ifdef DATA_IN
 

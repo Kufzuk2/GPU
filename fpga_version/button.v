@@ -13,9 +13,11 @@ module button
 
 
     always @(posedge clk) begin
-        but1 <= INVERTED ? ~KEY0 : KEY0;
-        but2 <= but0_1;
+        but1 <= INVERTED ? ~KEY : KEY;
+        but2 <= but1;
     end
     
     always @(posedge clk)
         skey <= ~but1 & but2;
+
+    endmodule
