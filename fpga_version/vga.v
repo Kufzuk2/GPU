@@ -9,9 +9,9 @@ module vga (
         output wire        blank_N    ,
         output wire        pixel_clk_N,
 
-	output reg  [11:0] addr       ,
+	output wire [11:0] addr       ,
 
-	output reg  [23:0] rgb
+	output wire [23:0] rgb
 );
  
 // Horizontal synchronization
@@ -30,31 +30,58 @@ localparam V_BACK_PORCH   =  33;
 localparam V_BLANK_PIX    = V_FRONT_PORCH  + V_SYNC_PULSE + V_BACK_PORCH;
 localparam V_TOTAL_PIX    = V_ACTIVE_VIDEO + V_BLANK_PIX                ;
  
+
+wire [9:0] x_pos;
+wire [9:0] y_pos;
+
+assign x_pos = count_h >= H_BLANK_PIX ? count_h - H_BLANK_PIX : 640 - 1;
+assign y_pos = count_v >= V_BLANK_PIX ? count_h - H_BLANK_PIX : 480 - 1;
+
+freq_div2 pixel_clk_gen (
+				.clk     (clock    ),
+				.reset   (reset    ),
+				.new_freq(pixel_clk)
+);
+
+rgb_gen rgb_gen (
+			.clock(pixel_clk),
+			.reset(reset    ),
+			.data (data     ),
+			.blank(blank_N  ),
+			.x_pos(x_pos    ),
+			.y_pos(y_pos    ),
+			.addr (addr     ),
+			.rgb  (rgb      )
+);
+
 // counters
-reg [10:0] count_v;
-reg [11:0] count_h;
+reg [9:0] count_v;
+reg [9:0] count_h;
  
 assign pixel_clk_N = ~ pixel_clk;
-assign blank_N = ~ ((count_V < V_BLANK_PIX) || (count_h < H_BLANK_PIX));
+assign blank_N = ~ ((count_v < V_BLANK_PIX) | (count_h < H_BLANK_PIX));
  
-assign vsync = (count_v >= V_FRONT_PORCH - 1) && (count_v <= V_FRONT_PORCH + V_SYNC_PULSE - 1);
- 
+assign vsync =    (count_v >= V_FRONT_PORCH - 1) & (count_v <= V_FRONT_PORCH + V_SYNC_PULSE - 1);
 
-assign hsync = ~ ((count_h >= H_FRONT_PORCH - 1) && (count_h <= H_FRONT_PORCH + H_SYNC_PULSE - 1));
- 
+assign hsync = ~ ((count_h >= H_FRONT_PORCH - 1) & (count_h <= H_FRONT_PORCH + H_SYNC_PULSE - 1));
+
 always @(posedge pixel_clk) begin
-    
-	if (count_h < H_TOTAL_PIX)
-        	count_h <= count_h + 1'b1;
-	else
-        	count_h <= 1'b0;
-end
- 
-always @(posedge hsync) begin
+	if( reset ) begin
+		count_h <= 0;
+		count_v <= 0;
+	end
 
-	if (count_v < V_TOTAL_PIX)
-        	count_v <= count_v + 1'b1;
-	else
-        	count_v <= 1'b0;
+	else begin
+		if (count_h < H_TOTAL_PIX)
+        		count_h <= count_h + 1'b1;
+		else begin
+			count_h <= 0;
+		
+			if (count_v < V_TOTAL_PIX)
+				count_v <= count_v + 1'b1;
+			else
+				count_v <= 0;
+		end
+	end
 end
 endmodule
