@@ -1,17 +1,23 @@
-`define SIMUL_MODE
+`define FPGA_MODE
 
 module bank (
-	input   wire        clock,
-	input   wire        reset,
+	input   wire        clock   ,
+	input   wire        reset   ,
 
-	input   wire        read,
-	input   wire        write,
+	input   wire        read    ,
+	input   wire        write   ,
 
-	input   wire  [7:0] addr_in,
-	input   wire  [7:0] data_in,
+	input   wire  [7:0] addr_in ,
+	input   wire  [7:0] data_in ,
 
 	`ifdef SIMUL_MODE
-	input   wire  [3:0] bank_n,
+	input   wire  [3:0] bank_n  ,
+	`endif
+
+	`ifdef FPGA_MODE
+	input   wire  [7:0] addr_vga,
+	
+	output  reg   [7:0] data_vga,
 	`endif
 
 	output  reg   [7:0] data_out,
@@ -25,19 +31,20 @@ always @(posedge clock) begin
 end
 
 always @(posedge clock) begin
-	casex(read)
-		1'b0:
-			data_out <= 8'hx;
-		1'b1:
-			data_out <= mem[addr_in];
-		default:
-			data_out <= 8'hx;
-	endcase
+	data_out <= ! reset & read ? mem[addr_in] : 8'b0;
 end
 
 always @(posedge clock) begin
-	finish <= !reset & (write | read) ? 1'b1 : 1'b0;
+	finish <= ! reset & (write | read) ? 1'b1 : 1'b0;
 end
+
+`ifdef FPGA_MODE
+
+	always @(posedge clock) begin
+		data_vga <= ! reset ? mem[addr_vga] : 8'b0; 
+	end
+
+`endif
 
 `ifdef SIMUL_MODE
 	reg [8 * 29:1] output_file;

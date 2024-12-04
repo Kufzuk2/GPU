@@ -1,16 +1,24 @@
+`define FPGA_MODE
+
 module bank_arbiter (
-	input wire clock,
-	input wire reset,
+	input  wire clock,
+	input  wire reset,
 
-	input wire [15:0] read,
-	input wire [15:0] write,
-	input wire [ 3:0] bank_n,     // bank number
+	input  wire [ 15:0] read    ,
+	input  wire [ 15:0] write   ,
+	input  wire [  3:0] bank_n  , // bank number
 
-	input  wire [191:0] addr_in,
-	input  wire [127:0] data_in,
+	input  wire [191:0] addr_in ,
+	input  wire [127:0] data_in ,
 
-	output reg [127:0] data_out,
-	output reg [ 15:0] finish    // signal for core from arbiter
+	`ifdef FPGA_MODE
+	input  wire [  7:0] addr_vga,
+
+	output wire [  7:0] data_vga,
+	`endif
+
+	output reg  [127:0] data_out,
+	output reg  [ 15:0] finish    // signal for core from arbiter
 );
 
 wire 	   addr_cor;     // core has address from this bank
@@ -33,9 +41,34 @@ wire [7:0] b_data_in;
 wire [7:0] b_data_out;
 
 // import bank and round robin algorithm modules
-round_robin round_robin ( .clock(clock), .reset(reset), .core_serv(core_serv), .core_val(read | write), .core_cnt(sel_core));
+round_robin round_robin ( 
+				.clock    (clock       ), 
+				.reset    (reset       ), 
+				.core_serv(core_serv   ), 
+				.core_val (read | write), 
+				.core_cnt (sel_core    )
+);
 
-bank bank ( .clock(clock), .reset(reset), .read(b_read), .write(b_write), .addr_in(b_addr_in), .data_in(b_data_in), `ifdef SIMUL_MODE .bank_n(bank_n), `endif .data_out(b_data_out), .finish(bank_finish) );
+bank bank ( 
+		.clock   (clock      ), 
+		.reset   (reset      ), 
+		.read    (b_read     ), 
+		.write   (b_write    ), 
+		.addr_in (b_addr_in  ), 
+		.data_in (b_data_in  ),
+
+		`ifdef SIMUL_MODE 
+		.bank_n  (bank_n     ), 
+		`endif
+
+		`ifdef FPGA_MODE
+		.addr_vga(addr_vga   ),
+		.data_vga(data_vga   ),
+		`endif
+
+		.data_out(b_data_out ), 
+		.finish  (bank_finish)
+);
 
 // define core_serv signal
 assign core_serv = addr_cor & !bank_finish ? 1'b1 : 1'b0;
@@ -47,8 +80,8 @@ assign b_write = core_serv ? write[sel_core] : 1'b0;
 
 // input and addr_cor multiplexers
 assign addr_cor_mux[0] = sel_core == 0 ? (addr_in [11:8] == bank_n) : 1'b0;
-assign addr_in_mux [0] = sel_core == 0 ?  addr_in [ 7:0]            : 8'hx;
-assign data_in_mux [0] = sel_core == 0 ?  data_in [ 7:0]            : 8'hx;
+assign addr_in_mux [0] = sel_core == 0 ?  addr_in [ 7:0]            : 8'b0;
+assign data_in_mux [0] = sel_core == 0 ?  data_in [ 7:0]            : 8'b0;
 
 genvar i;
 
@@ -70,7 +103,7 @@ assign b_data_in = data_in_mux [15];
 generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_output_mux
 		always @(posedge clock) begin
-			data_out[7 + i[3:0] * 8 : 0 + i[3:0] * 8] <= sel_core == i[3:0] ? b_data_out : 8'hx;
+			data_out[7 + i[3:0] * 8 : 0 + i[3:0] * 8] <= sel_core == i[3:0] ? b_data_out : 8'b0;
 		end
 	end
 endgenerate

@@ -1,3 +1,4 @@
+`define FPGA_MODE
 
 module gpu(
 	input wire clk,  // ASSIGN CLOCK_50
@@ -14,6 +15,20 @@ module gpu(
     output wire mem_ubn, // ASSIGN SRAM_UB_N
     // ????
     output wire mem_cke, // ASSIGN DRAM_CKE
+
+
+    `ifdef FPGA_MODE
+
+    output wire        hsync , // ASSIGN VGA_HS
+    output wire        vsync , // ASSIGN VGA_VS
+    output wire        blank , // ASSIGN VGA_BLANK_N
+    output wire        pixel_clk, // ASSIGN VGA_CLK
+    output wire [7:0]  red      , // ASSIGN VGA_R_[7:0]
+    output wire [7:0]  green    , // ASSIGN VGA_G_[7:0]
+    output wire [7:0]  blue     , // ASSIGN VGA_B_[7:0]
+
+    `endif
+
 
 	input  wire [1024  - 1: 0][15: 0] data_frames_in //// sdram
 );
@@ -39,6 +54,26 @@ module gpu(
     
     wire  reset;
 
+    `ifdef FPGA_MODE
+    
+    wire [ 11:0] addr_vga;
+    wire [127:0] data_vga;
+
+    wire [ 7:0] data_vga_mux [15:0];
+
+    genvar j;
+
+    assign data_vga_mux[0] = {8 {(addr_vga[11:8] == 8'b0)}} & data_vga[7:0];
+
+    generate
+	    for (j = 1; j < 16; j = j + 1) begin: data_vga_mux_gen
+		    assign data_vga_mux[j] = ({8 {(addr_vga[11:8] == j)}} & data_vga[7 + 8 * j : 8 * j]) | data_vga_mux[j -1];
+	    end
+    endgenerate 
+
+    `endif
+
+
     assign mem_oen = 1;
     assign mem_wen = 0;
     assign mem_cen = 1; /// ??????
@@ -62,28 +97,67 @@ genvar i;
 
 generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_cores
-		gpu_core_1 gpu_core_i 
-                        ( .clk(clk), .reset(reset),           .val_ins(val_ins),    .val_mask_R0(r0_mask_loading), 
-                          .val_mask_ac(core_mask_loading),    .val_R0(r0_loading),  .val_data(finish[i[3:0]]),       // initially was 8 * i[3:0]
-                          .instruction(instruction), .addr_shared_memory(addr_in[11 + 12 * i[3:0] : 12 * i[3:0]]),
-
-                          .mem_dat(data_out[7 + 8 * i[3:0] : 8 *  i[3:0]]),  .mem_dat_st(data_in[7 + 8 * i[3:0] : 8 * i[3:0]]),
-                          .core_id(i[3:0]), .rtr(gpu_core_reading[i[3:0]]), .mem_req_ld(read[i[3:0]]), 
-                          .mem_req_st(write[i[3:0]]), .ready(core_ready[i[3:0]])
-                        );
+		gpu_core_1 gpu_core_i ( 
+					.clk(clk), 
+					.reset(reset), 
+			      		.val_ins(val_ins),
+				    	.val_mask_R0(r0_mask_loading),
+					.val_mask_ac(core_mask_loading),   
+				       	.val_R0(r0_loading), 
+				       	.val_data(finish[i]), 
+					.instruction(instruction),
+				       	.addr_shared_memory(addr_in[11 + 12 * i[3:0] : 12 * i[3:0]]), 
+					.mem_dat(data_out[7 + 8 * i[3:0] : 8 *  i[3:0]]),  .mem_dat_st(data_in[7 + 8 * i : 8 * i]),
+					.core_id(i[3:0]),
+				       	.rtr(gpu_core_reading[i[3:0]]),
+				       	.mem_req_ld(read[i[3:0]]), 
+					.mem_req_st(write[i[3:0]]),
+				       	.ready(core_ready[i[3:0]])
+		);
 	end
 endgenerate
 
 generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_bank_arbiters
-	bank_arbiter arbiter_i 
-                    (.clock(clk), .reset(reset), .read(read), .write(write),
-                     .bank_n(i[3:0]), .addr_in(addr_in), .data_in(data_in), 
-                     .data_out(data_out), .finish(finish_array[i[3:0]])
-                    );
+		bank_arbiter arbiter_i (
+					.clock(clk                           ),
+					.reset(reset                         ),
+					.read(read                           ),
+				       	.write(write                         ),
+                     			.bank_n(i[3:0]                       ),
+				       	.addr_in(addr_in                     ),
+					.data_in(data_in                     ),
+
+					`ifdef FPGA_MODE
+					.addr_vga(addr_vga[7:0]                        ),
+					.data_vga(data_vga[7 + 8 * i[3:0] : 8 * i[3:0]]),
+					`endif
+
+                     			.data_out(data_out                   ),
+				       	.finish(finish_array[i]              )
+        	);
+
 	end
 endgenerate
 
+
+`ifdef FPGA_MODE
+
+vga vga (
+		.clock      (clk               ),
+		.reset      (reset             ),
+		.data       (data_vga_mux[15]  ),
+		.hsync      (hsync             ),
+		.vsync      (vsync             ),
+		.blank_N    (blank             ),
+		.pixel_clk_N(pixel_clk         ),
+		.addr       (addr_vga          ),
+		.rgb        ({red, green, blue})
+
+
+);
+
+`endif
 
 
 

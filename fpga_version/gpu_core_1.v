@@ -48,6 +48,8 @@ module gpu_core_1(
 	
 	reg [4:0] i ;
 	reg [4:0] counter_ri;
+
+	integer c;
 	//integer count = 0;
 	//reg cos = 1;
 
@@ -112,7 +114,7 @@ module gpu_core_1(
         begin
           if (reset) 
             begin
-              for (integer c = 0; c < 16; c=c+1 )
+              for (c = 0; c < 16; c=c+1 )
                 begin 
                   RF[c] <= 0;
                 end
