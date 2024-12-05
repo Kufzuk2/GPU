@@ -16,8 +16,8 @@ module gpu_core_1(
 	
 	output reg rtr, // Ready to recieve   //  cleaned
 	output reg mem_req_ld, // Memory request //cleaned
-	output reg mem_req_st, // Memory request
-	output reg ready // READY signal to TS
+	output reg mem_req_st, // Memory request  // cleaned
+	output reg ready // READY signal to TS   // cleaned
 	);
 	parameter [3:0] RI = 0,F = 1, D = 2, E = 3, M = 4, M_W = 5, WB = 6, NA = 7;
 	//reg [3:0] state = RI;
@@ -112,7 +112,55 @@ module gpu_core_1(
           RF_15 <= RF[15];
         end
 
-
+/*
+    always @(posedge clk) begin
+        if (reset)
+            state <= RI;
+        else if (state == RI)
+			if ((val_mask_ac) && (!(instruction[core_id])))
+			    state <= NA;
+            else if ((i == 16)&&(counter_ri == 16))
+                state <= F;
+            else
+                state <= state;
+        else if (state == F)
+			state <= D;	
+        else if (state == D)
+			state <= E;	
+        else if (state == E)
+			state <= M;
+        else if (state == M) begin 
+			if(IR_M[15:12]==11 | IR_M[15:12] == 13)
+			    state <= M_W;
+			else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
+    			state <= WB;
+            else
+                state <= state;
+        end 
+        else if (state == M_W) begin 
+            if((val_data)&&IR_M[15:12]==11)
+                state <= WB;
+            else if((val_data)&&(IR_M[15:12]==13))
+                state <= WB;
+            else
+                state <= state;
+        end
+        else if (state == WB) begin 
+            if((IR_M[15:12]<11) || (IR_M[15:12]==12))
+                state <= F;
+            else if(IR_M[15:12]==11)
+                state <= F;
+            
+            else if((IR_M[15:12]==13)||(IR_M[15:12]==14)||(IR_M[15:12]==0))
+                state <= F;
+            else if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
+                state <= RI;
+        end
+        else if ((val_mask_ac)&&(instruction[core_id]))
+            state <= RI;
+        else
+            state <= state;
+    end*/
         //RF regs logic
     always @(posedge clk) 
         begin
@@ -198,13 +246,19 @@ module gpu_core_1(
 
     always @(posedge clk) 
 		begin
-			if (reset) 
-				begin
-					i <= 0;
-					ready <= 1;
-				//	rtr <= 1;
-					state <= RI;
-				end
+			if (reset) begin
+                i <= 0;
+                ready <= 1;
+                state <= RI;
+			end else if (state == RI & val_ins)
+                ready <= 0;
+            else if ((state == WB) & ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14)))) 
+                ready <= 1;
+            else
+                ready <= ready;
+
+
+
 		end	
 	
 	always @(posedge clk) 
@@ -222,7 +276,7 @@ module gpu_core_1(
 						end
 					if (val_ins) 
 						begin
-							ready <=0;
+							//ready <=0;
 							ins_mem[i] <= instruction;
 							i = i +1;
 						end
@@ -363,9 +417,9 @@ module gpu_core_1(
 							state <= M_W;
 						end	
 					
-					else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
-						state <= WB;
-				end
+					//else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
+					 	state <= WB;
+				end// state M if
 
             else if ((state == M_W) & (val_data) &  (IR_M[15:12]==11)) begin
                 if(IR_M[15:12]==13)
@@ -450,7 +504,7 @@ module gpu_core_1(
 						end
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
-							ready <= 1;
+							//ready <= 1;
 							state <= RI;
 						end
 				end
