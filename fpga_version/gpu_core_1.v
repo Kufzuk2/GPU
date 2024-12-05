@@ -9,13 +9,13 @@ module gpu_core_1(
 	
 	input wire val_data, // val data from memmory
 	input wire[15:0] instruction, // ins_mem from TS
-	output reg [11:0] addr_shared_memory, // addr to shared memory
+	output reg [11:0] addr_shared_memory, // addr to shared memory   // clean
 	input wire[7:0] mem_dat, // data from sm
-	output reg [7:0] mem_dat_st, // data to sm 
+	output reg [7:0] mem_dat_st, // data to sm  ///clean
 	input wire [3:0] core_id,
 	
-	output reg rtr, // Ready to recieve
-	output reg mem_req_ld, // Memory request
+	output reg rtr, // Ready to recieve   //  cleaned
+	output reg mem_req_ld, // Memory request //cleaned
 	output reg mem_req_st, // Memory request
 	output reg ready // READY signal to TS
 	);
@@ -24,36 +24,38 @@ module gpu_core_1(
 	reg [3:0] state;
 	
 	// Internal registers
-	reg [7:0] RF [0:15]; // Register File
-	reg [3:0] PC; // Instruction Pointer
-	reg [3:0] PC_D;
-	reg [3:0] PC_E;
-	reg [15:0] ins_mem [0:15];
-	reg [15:0] IR_D;
-	reg [15:0] IR_E;
-	reg [15:0] IR_M;
-	reg [15:0] IR_WB;
+	reg [7:0] RF [0:15]; // Register File  //vleaned
+	reg [3:0] PC; // Instruction Pointer  // cleaned
+	reg [3:0] PC_D; // no need to clean
+	reg [3:0] PC_E; // no need but it is not reseted at all
+	reg [15:0] ins_mem [0:15]; // clean but not reseted
+	reg [15:0] IR_D; //clean
+	reg [15:0] IR_E; // clean + no reset
+	reg [15:0] IR_M; // clean + no rst
+	reg [15:0] IR_WB; // cleaned
 	reg [7:0] A;
-	reg [7:0] D_WB;
-	reg [7:0] data_to_store_E;
-	reg [7:0] data_to_store_M;
-	reg [7:0] B_E;
-	reg [7:0] B_M; 
-	reg [11:0] O_M;
-	reg [11:0] O_WB;
+	reg [7:0] D_WB; // clean + no rst
+	reg [7:0] data_to_store_E;// clean + no rst
+	reg [7:0] data_to_store_M;// clean + no rst
+	reg [7:0] B_E; // clean + no rst
+
+	reg [7:0] B_M;  // clean + no rst
+	reg [11:0] O_M; // clean + no rst
+
+	reg [11:0] O_WB; // cleaned
 	
 	
-	reg br_tkn;
-	reg [3:0] br_target;
+	reg br_tkn; // cleaned
+	reg [3:0] br_target; // cleaned
 	
 	reg [4:0] i ;
-	reg [4:0] counter_ri;
+	reg [4:0] counter_ri; // cleaned
 
 	integer c;
 	//integer count = 0;
 	//reg cos = 1;
 
-    reg cos1;
+    reg cos1; // cleaned
     always @(posedge clk) begin
         if (reset)
             cos1 <= 1;
@@ -87,7 +89,7 @@ module gpu_core_1(
     reg [7:0] RF_12;
     reg [7:0] RF_13;
     reg [7:0] RF_14;
-    reg [7:0] RF_15;
+    reg [7:0] RF_15; // clean
 
 
     always @(posedge clk) 
@@ -110,28 +112,97 @@ module gpu_core_1(
           RF_15 <= RF[15];
         end
 
+
+        //RF regs logic
     always @(posedge clk) 
         begin
-          if (reset) 
-            begin
-              for (c = 0; c < 16; c=c+1 )
-                begin 
-                  RF[c] <= 0;
-                end
+            if (reset) begin
+                for (c = 0; c < 16; c=c+1 ) 
+                    RF[c] <= 0;
             end
+            else if (state == RI) begin
+                
+                if ((val_mask_R0) & (instruction[core_id]))
+                RF[0] <= 0;
+                else
+					RF[0] <= RF[0];		
+        
+            end else if (val_R0) begin
+                if(RF[0] && (counter_ri == core_id))
+                    begin 
+                        RF[0] <= instruction[15:8];
+                    end
+                if(RF[0] && (counter_ri == core_id-1))
+                    begin 
+                        RF[0] <= instruction[7:0];
+                    end	
+            end // val_r0 if
+            else if (state == WB) begin
+                if((IR_M[15:12]<11) || (IR_M[15:12]==12))
+                    RF[IR_WB[3:0]] <= O_WB;
+
+                else if (IR_M[15:12]==11)
+							RF[IR_WB[3:0]]<= D_WB;
+            end // state wb if
         end
 
-	always @(posedge clk) 
+
+
+
+///////////////////////////////////////////////
+
+
+	always @(posedge clk) begin
+        if (reset) 
+            counter_ri <=0;
+        else if (state == RI) begin
+            if (val_ins)
+				counter_ri <= 16;
+            else if ((i == 16)&&(counter_ri == 16))
+                counter_ri <= 0;
+
+        end // state ri
+    end //always
+
+//brtaken logic
+    always @(posedge clk) begin 
+		if (reset) 
+			br_tkn <= 0;
+        else if (br_tkn)
+            br_tkn <= 0;
+        else if (state == E & (IR_E[15:12] == 4'b1110) & (A != 0))
+            br_tkn <= 1;
+    end
+
+//brtaken logic
+    always @(posedge clk) begin 
+		if (reset) 
+			br_target <= 0;
+        else if (state == E & (IR_E[15:12] == 4'b1110) & (A != 0))
+			br_target<=IR_E[7:4];
+        else 
+            br_target <= br_target;
+    end
+        //////////////////////////////////////
+
+        //////////////////////////////////////
+
+    always @(posedge clk) begin
+			if (reset) 
+				rtr <= 1;
+            else if (state == RI)
+				rtr <= 1;
+            else if ((i == 16)&&(counter_ri == 16))
+                rtr <= 0;
+	end	
+
+    always @(posedge clk) 
 		begin
 			if (reset) 
 				begin
 					i <= 0;
-					counter_ri <=0;
-					PC <= 0;
 					ready <= 1;
-					rtr <= 1;
-					br_tkn <= 0;
-					br_target <= 0;
+				//	rtr <= 1;
 					state <= RI;
 				end
 		end	
@@ -140,33 +211,18 @@ module gpu_core_1(
 		begin
 			if (!(reset)&&(state==RI)) 
 				begin
-					rtr <= 1;
+					//rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
 							state <= NA;
 						end	
-					
-					if ((val_mask_R0)&&(instruction[core_id]))
-						begin
-							RF[0] <= 1;
-						end
-					else RF[0] <= RF[0];		
 					if (val_R0)
 						begin
-							if(RF[0] && (counter_ri == core_id))
-								begin 
-									RF[0] <= instruction[15:8];
-								end
-							if(RF[0] && (counter_ri == core_id-1))
-								begin 
-									RF[0] <= instruction[7:0];
-								end	
 							counter_ri = counter_ri+2;
 						end
 					if (val_ins) 
 						begin
 							ready <=0;
-							counter_ri <= 16;
 							ins_mem[i] <= instruction;
 							i = i +1;
 						end
@@ -176,35 +232,48 @@ module gpu_core_1(
 						begin 
 							state <=F;
 							i<=0;
-							counter_ri <= 0;
-							rtr <= 0;
+							//rtr <= 0;
 						end
-					
 				end
 		end
 		
+
+
+	always @(posedge clk) begin 
+        if (reset)
+            PC <= 0;
+        else if (state == F) begin
+            if (br_tkn)
+                PC <= br_target;
+            else if (cos1)
+                PC <= 0;
+            else
+                PC <= PC+1;
+
+        end // br_tkn
+        else if ((state == WB) & ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) )
+            PC <= 0;
+    end // PC_alw
+
+
 	always @(posedge clk)
 		begin 
 			if (!(reset)&&(state==F)) 
 				begin
 					if (br_tkn)
 						begin
-							PC <= br_target;
-							br_tkn <= 0;
 							IR_D <= ins_mem[br_target];
 							PC_D <= br_target;
 						end
 					else
 						if (cos1)
 							begin 
-								PC <= 0;
 								PC_D <= PC;
 								IR_D <= ins_mem[PC];
 								
 							end
 						else
 							begin 
-								PC <= PC+1;
 								PC_D <= PC+1;
 								IR_D <= ins_mem[PC+1];
 							end
@@ -259,14 +328,6 @@ module gpu_core_1(
 									end
 							end
 						4'b1101: O_M      <= {A[3:0],B_E};  //addr for st
-						4'b1110:
-							begin 
-								if (A != 0)
-									begin
-										br_target<=IR_E[7:4];
-										br_tkn <= 1;
-									end
-							end 
 					endcase  
 					
 					B_M <= B_E;
@@ -275,9 +336,10 @@ module gpu_core_1(
 					
 					state <= M;
 				end
-		end	
-	always @(posedge clk)
-		begin
+		end
+
+
+	always @(posedge clk) begin
 			if (reset)
 				begin
 				mem_dat_st<=0;
@@ -285,15 +347,14 @@ module gpu_core_1(
 				mem_req_ld <= 0;
 				mem_req_st <= 0;
 				end
-			if (!(reset)&&(state==M)) 
-				begin
+			else if (state==M) begin
 					if(IR_M[15:12]==11)
 						begin
 							mem_req_ld <= 1;
 							addr_shared_memory <= O_M;
 							state <= M_W;
 						end
-					if(IR_M[15:12]==13)
+					else if(IR_M[15:12]==13)
 						begin
 							mem_req_st <= 1;
 							mem_dat_st <= data_to_store_M;
@@ -302,14 +363,57 @@ module gpu_core_1(
 							state <= M_W;
 						end	
 					
-					if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
-						begin
-							IR_WB <= IR_M;
-							O_WB[7:0] <= O_M;
-							state <= WB;
-						end
+					else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
+						state <= WB;
 				end
+
+            else if ((state == M_W) & (val_data) &  (IR_M[15:12]==11)) begin
+                if(IR_M[15:12]==13)
+                    mem_req_st <=0;
+
+                else if (IR_M[15:12]==11)
+                    mem_req_ld <= 0;
+            end 
+            else begin
+                mem_req_ld <= mem_req_ld;
+                mem_req_st <= mem_req_st;
+            end
 		end	
+
+
+
+// O_WB logic
+	always @(posedge clk) begin 
+        if (reset)
+            O_WB <= 0;
+        else if (state == M_W) begin
+            if((val_data)&&IR_M[15:12]==11)
+				O_WB[7:0] <= O_M;
+        end else if (state == M & (IR_M[15:12]!=11 && IR_M[15:12]!=13))
+			O_WB[7:0] <= O_M;
+        else
+            O_WB <= O_WB;
+
+    end// IR_WB logic
+
+// IR_WB logic
+	always @(posedge clk) begin 
+        if (state == M_W) begin
+			if((val_data)&&IR_M[15:12]==11)
+				IR_WB <= IR_M;
+            else if((val_data)&&(IR_M[15:12]==13))
+                IR_WB <= IR_M;
+            else
+                IR_WB <= IR_WB;
+        end else if (state == M & (IR_M[15:12]!=11 && IR_M[15:12]!=13))
+            IR_WB <= IR_M;
+        else
+            IR_WB <= IR_WB;
+
+    end// IR_WB logic
+
+
+
 	always @(posedge clk)
 		begin 
 			if (!(reset)&&(state==M_W)) 
@@ -317,16 +421,12 @@ module gpu_core_1(
 					if((val_data)&&IR_M[15:12]==11)
 						begin
 							D_WB[7:0] <= mem_dat;
-							O_WB[7:0] <= O_M;
-							IR_WB <= IR_M;
 							state <= WB;
-							mem_req_ld <=0;
 						end
 					if((val_data)&&(IR_M[15:12]==13))
 						begin
-							IR_WB <= IR_M;
 							state <= WB;
-							mem_req_st <=0;
+						//	mem_req_st <=0;
 						end	
 				end	
 		end
@@ -337,12 +437,10 @@ module gpu_core_1(
 				begin
 					if((IR_M[15:12]<11) || (IR_M[15:12]==12))
 						begin
-							RF[IR_WB[3:0]]<= O_WB;
 							state <= F;
 						end
 					if(IR_M[15:12]==11)
 						begin
-							RF[IR_WB[3:0]]<= D_WB;
 							state <= F;
 						end
 					
@@ -353,7 +451,6 @@ module gpu_core_1(
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
 							ready <= 1;
-							PC <= 0;
 							state <= RI;
 						end
 				end
