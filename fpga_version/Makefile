@@ -13,3 +13,5 @@ picr:
 	gthumb result/output.png
 compile: 
 	iverilog gpu.v vga.v freq_div2.v rgb_gen.v bank.v bank_arbiter.v pseudo_asm.v button.v gpu_core_1.v round_robin.v sched_def.v new_ts.v new_test.v
+clean_res:
+	rm result/bank_*
