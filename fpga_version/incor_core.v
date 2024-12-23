@@ -65,14 +65,6 @@ module gpu_core_1(
                                   cos1;
     end
 
-/*
-    // state logic
-    always @(posedge clk) begin
-        if (reset)
-            state <= RI;
-        else
-*/
-
 
     reg [7:0] RF_0;
     reg [7:0] RF_1;
@@ -112,7 +104,6 @@ module gpu_core_1(
           RF_15 <= RF[15];
         end
 
-/*
     always @(posedge clk) begin
         if (reset)
             state <= RI;
@@ -160,7 +151,7 @@ module gpu_core_1(
             state <= RI;
         else
             state <= state;
-    end*/
+    end
         //RF regs logic
     always @(posedge clk) 
         begin
@@ -252,7 +243,7 @@ module gpu_core_1(
 			if (reset) begin
                 i <= 0;
                 ready <= 1;
-                state <= RI;
+                //state <= RI;
 			end else if (state == RI & val_ins)
                 ready <= 0;
             else if ((state == WB) & ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14)))) 
@@ -271,7 +262,7 @@ module gpu_core_1(
 					//rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
-							state <= NA;
+							//state <= NA;
 						end	
 					if (val_R0)
 						begin
@@ -287,7 +278,7 @@ module gpu_core_1(
 					
 					if ((i == 16)&&(counter_ri == 16))
 						begin 
-							state <=F;
+							//state <=F;
 							i<=0;
 							//rtr <= 0;
 						end
@@ -335,7 +326,7 @@ module gpu_core_1(
 								IR_D <= ins_mem[PC+1];
 							end
 					
-					state <= D;	
+					//state <= D;	
 				end
 		end	
 		
@@ -352,7 +343,7 @@ module gpu_core_1(
 					A <= RF[IR_D[11:8]];
 					B_E <= RF[IR_D[7:4]]; 
 					
-					state <= E;	
+					//state <= E;	
 				end
 		end	
 		
@@ -391,7 +382,7 @@ module gpu_core_1(
 					IR_M <= IR_E;
 					data_to_store_M <= data_to_store_E;
 					
-					state <= M;
+					//state <= M;
 				end
 		end
 
@@ -409,7 +400,7 @@ module gpu_core_1(
 						begin
 							mem_req_ld <= 1;
 							addr_shared_memory <= O_M;
-							state <= M_W;
+							//state <= M_W;
 						end
 					else if(IR_M[15:12]==13)
 						begin
@@ -417,11 +408,11 @@ module gpu_core_1(
 							mem_dat_st <= data_to_store_M;
 							
 							addr_shared_memory <= O_M;
-							state <= M_W;
+							//state <= M_W;
 						end	
 					
 					//else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
-					 	state <= WB;
+					 	//state <= WB;
 				end// state M if
 
             else if ((state == M_W) & (val_data) &  (IR_M[15:12]==11)) begin
@@ -478,11 +469,11 @@ module gpu_core_1(
 					if((val_data)&&IR_M[15:12]==11)
 						begin
 							D_WB[7:0] <= mem_dat;
-							state <= WB;
+							//state <= WB;
 						end
 					if((val_data)&&(IR_M[15:12]==13))
 						begin
-							state <= WB;
+							//state <= WB;
 						//	mem_req_st <=0;
 						end	
 				end	
@@ -494,21 +485,21 @@ module gpu_core_1(
 				begin
 					if((IR_M[15:12]<11) || (IR_M[15:12]==12))
 						begin
-							state <= F;
+							//state <= F;
 						end
 					if(IR_M[15:12]==11)
 						begin
-							state <= F;
+							//state <= F;
 						end
 					
 					if((IR_M[15:12]==13)||(IR_M[15:12]==14)||(IR_M[15:12]==0))
 						begin
-							state <= F;
+							//state <= F;
 						end
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
 							//ready <= 1;
-							state <= RI;
+							//state <= RI;
 						end
 				end
 		end	
@@ -516,7 +507,7 @@ module gpu_core_1(
 		begin 
 			if ((val_mask_ac)&&(instruction[core_id]))
 				begin
-					state <= RI;
+					//state <= RI;
 				end
 		end	
 	

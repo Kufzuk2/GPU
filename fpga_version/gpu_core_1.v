@@ -65,13 +65,6 @@ module gpu_core_1(
                                   cos1;
     end
 
-/*
-    // state logic
-    always @(posedge clk) begin
-        if (reset)
-            state <= RI;
-        else
-*/
 
 
     reg [7:0] RF_0;
@@ -201,7 +194,6 @@ always @(posedge clk) begin
     end else
         i <= 0;
 end
-/*
 //state logic
     always @(posedge clk) begin
         if (reset)
@@ -251,7 +243,6 @@ end
         else
             state <= state;
     end
-*/
 
 
 //brtaken logic
@@ -347,7 +338,7 @@ end
 					//PC <= 0;
 					//br_tkn <= 0;
 					//br_target <= 0;
-					state <= RI;
+					//state <= RI;
 				end
 		end	
 	
@@ -378,7 +369,7 @@ end
 								IR_D <= ins_mem[PC+1];
 							end
 					
-					state <= D;	
+					//state <= D;	
 				end
 		end	
 		
@@ -400,7 +391,7 @@ end
 					rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
-							state <= NA;
+							//state <= NA;
 						end	
 					
 					if ((val_mask_R0)&&(instruction[core_id]))
@@ -431,7 +422,7 @@ end
 					
 					if ((i == 16)&&(counter_ri == 16))
 						begin 
-							state <=F;
+							//state <=F;
 							//i <= 0;
 							counter_ri <= 0;
 							rtr <= 0;
@@ -455,7 +446,7 @@ end
 					A <= RF[IR_D[11:8]];
 					B_E <= RF[IR_D[7:4]]; 
 					
-					state <= E;	
+					//state <= E;	
 				end
 		end	
 	
@@ -466,23 +457,23 @@ end
 					if((IR_M[15:12]<11) || (IR_M[15:12]==12))
 						begin
 							RF[IR_WB[3:0]]<= O_WB;
-							state <= F;
+							//state <= F;
 						end
 					if(IR_M[15:12]==11)
 						begin
 							RF[IR_WB[3:0]]<= D_WB;
-							state <= F;
+							//state <= F;
 						end
 					
 					if((IR_M[15:12]==13)||(IR_M[15:12]==14)||(IR_M[15:12]==0))
 						begin
-							state <= F;
+							//state <= F;
 						end
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
 							ready <= 1;
 							//PC <= 0;
-							state <= RI;
+							//state <= RI;
 						end
 				end
 		end	
@@ -530,7 +521,7 @@ end
 					IR_M <= IR_E;
 					data_to_store_M <= data_to_store_E;
 					
-					state <= M;
+					//state <= M;
 				end
 		end	
 
@@ -574,21 +565,21 @@ end
 					if(IR_M[15:12]==11)
 						begin
 							addr_shared_memory <= O_M;
-							state <= M_W;
+							//state <= M_W;
 						end
 					if(IR_M[15:12]==13)
 						begin
 							mem_dat_st <= data_to_store_M;
 							
 							addr_shared_memory <= O_M;
-							state <= M_W;
+							//state <= M_W;
 						end	
 					
 					if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
 						begin
 							//IR_WB <= IR_M;
 							O_WB[7:0] <= O_M;
-							state <= WB;
+							//state <= WB;
 						end
 				end
 		end	
@@ -601,12 +592,12 @@ end
 							D_WB[7:0] <= mem_dat;
 							O_WB[7:0] <= O_M;
 							//IR_WB <= IR_M;
-							state <= WB;
+							//state <= WB;
 						end
 					if((val_data)&&(IR_M[15:12]==13))
 						begin
 							//IR_WB <= IR_M;
-							state <= WB;
+							//state <= WB;
 						end	
 				end	
 		end
@@ -615,7 +606,7 @@ end
 		begin 
 			if ((val_mask_ac)&&(instruction[core_id]))
 				begin
-					state <= RI;
+					//state <= RI;
 				end
 		end	
 	
