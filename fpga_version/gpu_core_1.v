@@ -406,7 +406,7 @@ end
 		begin
 			if (!(reset)&&(state==RI)) 
 				begin
-					rtr <= 1;
+					//rtr <= 1;
 					if ((val_mask_ac) && (!(instruction[core_id])))
 						begin
 							//state <= NA;
@@ -431,7 +431,7 @@ end
 						end
 					if (val_ins) 
 						begin
-							ready <=0;
+							//ready <=0;
 							//counter_ri <= 16;
 							ins_mem[i] <= instruction;
 							//i <= i + 1;
@@ -443,7 +443,7 @@ end
 							//state <=F;
 							//i <= 0;
 							//counter_ri <= 0;
-							rtr <= 0;
+							//rtr <= 0;
 						end
 					
 				end
@@ -489,7 +489,7 @@ end
 						end
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
-							ready <= 1;
+							//ready <= 1;
 							//PC <= 0;
 							//state <= RI;
 						end
