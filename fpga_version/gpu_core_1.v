@@ -25,7 +25,7 @@ module gpu_core_1(
 	
 	// Internal registers
 	reg [7:0] RF [0:15]; // Register File  
-	reg [3:0] PC; // Instruction Pointer  
+	reg [3:0] PC; // Instruction Pointer  // CLEANED
 	reg [3:0] PC_D; // no need to clean
 	reg [3:0] PC_E; // no need but it is not reseted at all
 	reg [15:0] ins_mem [0:15]; // clean but not reseted
@@ -186,7 +186,28 @@ module gpu_core_1(
 // still incorrect
 ///////////////////////////////////////////////
     
-	
+
+
+// IR_WB logic
+	always @(posedge clk) begin 
+        if (state == M_W) begin
+			if((val_data)&&IR_M[15:12]==11)
+				IR_WB <= IR_M;
+            else if((val_data)&&(IR_M[15:12]==13))
+                IR_WB <= IR_M;
+            else
+                IR_WB <= IR_WB;
+        end else if (state == M & (IR_M[15:12]!=11 && IR_M[15:12]!=13))
+            IR_WB <= IR_M;
+        else
+            IR_WB <= IR_WB;
+
+    end// IR_WB logic
+
+
+
+
+
 	always @(posedge clk) begin 
         if (reset)
             PC <= 0;
@@ -478,7 +499,7 @@ module gpu_core_1(
 					
 					if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
 						begin
-							IR_WB <= IR_M;
+							//IR_WB <= IR_M;
 							O_WB[7:0] <= O_M;
 							state <= WB;
 						end
@@ -492,12 +513,12 @@ module gpu_core_1(
 						begin
 							D_WB[7:0] <= mem_dat;
 							O_WB[7:0] <= O_M;
-							IR_WB <= IR_M;
+							//IR_WB <= IR_M;
 							state <= WB;
 						end
 					if((val_data)&&(IR_M[15:12]==13))
 						begin
-							IR_WB <= IR_M;
+							//IR_WB <= IR_M;
 							state <= WB;
 						end	
 				end	

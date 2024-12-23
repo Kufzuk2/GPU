@@ -448,7 +448,7 @@ module gpu_core_1(
         else
             O_WB <= O_WB;
 
-    end// IR_WB logic
+    end// O_WB logic
 
 // IR_WB logic
 	always @(posedge clk) begin 
