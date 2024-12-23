@@ -33,7 +33,7 @@ module gpu_core_1(
 	reg [15:0] IR_E; // clean + no reset
 	reg [15:0] IR_M; // clean + no rst
 	reg [15:0] IR_WB; // CLEANED
-	reg [7:0] A;
+	reg [7:0] A;  // clean (seems)
 	reg [7:0] D_WB; // clean + no rst
 	reg [7:0] data_to_store_E;// clean + no rst
 	reg [7:0] data_to_store_M;// clean + no rst
@@ -46,16 +46,16 @@ module gpu_core_1(
 	
 	
 	reg br_tkn; // CLEANED
-	reg [3:0] br_target;
+	reg [3:0] br_target; /// CLEANED
 	
-	reg [4:0] i ;
-	reg [4:0] counter_ri;
+	reg [4:0] i ; // CLEANED    (but without else if)
+	reg [4:0] counter_ri; // beda
 
 	integer c;
 	//integer count = 0;
 	//reg cos = 1;
 
-    reg cos1;
+    reg cos1; // CLEANED
     always @(posedge clk) begin
         if (reset)
             cos1 <= 1;
@@ -185,7 +185,74 @@ module gpu_core_1(
 // */
 // still incorrect
 ///////////////////////////////////////////////
-    
+   
+
+always @(posedge clk) begin
+    if (reset)
+        i <= 0;
+    else if (state == RI) begin
+            
+        if (val_ins) 
+            i <= i + 1;
+        
+        if ((i == 16)&&(counter_ri == 16)) //chang to "else if" 
+            i <= 0;                        // rotates the resulting picture
+
+    end else
+        i <= 0;
+end
+/*
+//state logic
+    always @(posedge clk) begin
+        if (reset)
+            state <= RI;
+        else if (state == RI)
+			if ((val_mask_ac) && (!(instruction[core_id])))
+			    state <= NA;
+            else if ((i == 16)&&(counter_ri == 16))  //else
+                state <= F;
+            else
+                state <= state;
+        else if (state == F)
+			state <= D;	
+        else if (state == D)
+			state <= E;	
+        else if (state == E)
+			state <= M;
+        else if (state == M) begin 
+			if(IR_M[15:12]==11 | IR_M[15:12] == 13)
+			    state <= M_W;
+			else if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
+    			state <= WB;
+            else
+                state <= state;
+        end 
+        else if (state == M_W) begin 
+            if((val_data)&&IR_M[15:12]==11)
+                state <= WB;
+            else if((val_data)&&(IR_M[15:12]==13))
+                state <= WB;
+            else
+                state <= state;
+        end
+        else if (state == WB) begin 
+            if((IR_M[15:12]<11) || (IR_M[15:12]==12))
+                state <= F;
+            else if(IR_M[15:12]==11)
+                state <= F;
+            
+            else if((IR_M[15:12]==13)||(IR_M[15:12]==14)||(IR_M[15:12]==0))
+                state <= F;
+            else if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
+                state <= RI;
+        end
+        else if ((val_mask_ac)&&(instruction[core_id]))
+            state <= RI;
+        else
+            state <= state;
+    end
+*/
+
 
 //brtaken logic
     always @(posedge clk) begin 
@@ -275,7 +342,7 @@ module gpu_core_1(
 		begin
 			if (reset) 
 				begin
-					i <= 0;
+					//i <= 0;
 					counter_ri <=0;
 					//PC <= 0;
 					//br_tkn <= 0;
@@ -358,14 +425,14 @@ module gpu_core_1(
 							ready <=0;
 							counter_ri <= 16;
 							ins_mem[i] <= instruction;
-							i = i +1;
+							//i <= i + 1;
 						end
 					else ins_mem[i]<=ins_mem[i];
 					
 					if ((i == 16)&&(counter_ri == 16))
 						begin 
 							state <=F;
-							i<=0;
+							//i <= 0;
 							counter_ri <= 0;
 							rtr <= 0;
 						end

@@ -119,7 +119,7 @@ module gpu_core_1(
         else if (state == RI)
 			if ((val_mask_ac) && (!(instruction[core_id])))
 			    state <= NA;
-            else if ((i == 16)&&(counter_ri == 16))
+            else if ((i == 16)&&(counter_ri == 16))  //else
                 state <= F;
             else
                 state <= state;
