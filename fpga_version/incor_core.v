@@ -206,6 +206,9 @@ module gpu_core_1(
         else if (state == RI) begin
             if (val_ins)
 				counter_ri <= 16;
+            else if (val_R0)
+                counter_ri <= counter_ri + 2;
+
             else if ((i == 16)&&(counter_ri == 16))
                 counter_ri <= 0;
 
