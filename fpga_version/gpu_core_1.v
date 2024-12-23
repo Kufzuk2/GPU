@@ -187,6 +187,21 @@ module gpu_core_1(
 ///////////////////////////////////////////////
     
 	
+	always @(posedge clk) begin 
+        if (reset)
+            PC <= 0;
+        else if (state == F) begin
+            if (br_tkn)
+                PC <= br_target;
+            else if (cos1)
+                PC <= 0;
+            else
+                PC <= PC+1;
+
+        end // br_tkn
+        else if ((state == WB) & ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) )
+            PC <= 0;
+    end // PC_alw
 
 
     always @(posedge clk) 
@@ -221,7 +236,7 @@ module gpu_core_1(
 				begin
 					i <= 0;
 					counter_ri <=0;
-					PC <= 0;
+					//PC <= 0;
 					br_tkn <= 0;
 					br_target <= 0;
 					state <= RI;
@@ -235,7 +250,7 @@ module gpu_core_1(
 				begin
 					if (br_tkn)
 						begin
-							PC <= br_target;
+							//PC <= br_target;
 							br_tkn <= 0;
 							IR_D <= ins_mem[br_target];
 							PC_D <= br_target;
@@ -243,14 +258,14 @@ module gpu_core_1(
 					else
 						if (cos1)
 							begin 
-								PC <= 0;
+								//PC <= 0;
 								PC_D <= PC;
 								IR_D <= ins_mem[PC];
 								
 							end
 						else
 							begin 
-								PC <= PC+1;
+								//PC <= PC+1;
 								PC_D <= PC+1;
 								IR_D <= ins_mem[PC+1];
 							end
@@ -358,7 +373,7 @@ module gpu_core_1(
 					if ((IR_E[15:12]==15)||(PC_E==15 && (IR_WB[15:12] != 14))) 
 						begin
 							ready <= 1;
-							PC <= 0;
+							//PC <= 0;
 							state <= RI;
 						end
 				end
