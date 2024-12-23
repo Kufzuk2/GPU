@@ -216,7 +216,7 @@ module gpu_core_1(
     always @(posedge clk) begin 
 		if (reset) 
 			br_tkn <= 0;
-        else if (br_tkn)
+        else if ((state == F) & br_tkn)
             br_tkn <= 0;
         else if (state == E & (IR_E[15:12] == 4'b1110) & (A != 0))
             br_tkn <= 1;

@@ -32,7 +32,7 @@ module gpu_core_1(
 	reg [15:0] IR_D; //clean
 	reg [15:0] IR_E; // clean + no reset
 	reg [15:0] IR_M; // clean + no rst
-	reg [15:0] IR_WB; // 
+	reg [15:0] IR_WB; // CLEANED
 	reg [7:0] A;
 	reg [7:0] D_WB; // clean + no rst
 	reg [7:0] data_to_store_E;// clean + no rst
@@ -207,6 +207,17 @@ module gpu_core_1(
 
 
 
+//brtaken logic
+    always @(posedge clk) begin 
+		if (reset) 
+			br_tkn <= 0;
+        else if ((state == F) & br_tkn)
+            br_tkn <= 0;
+        else if (state == E & (IR_E[15:12] == 4'b1110) & (A != 0))
+            br_tkn <= 1;
+        else 
+            br_tkn <= br_tkn;
+    end
 
 	always @(posedge clk) begin 
         if (reset)
@@ -258,7 +269,7 @@ module gpu_core_1(
 					i <= 0;
 					counter_ri <=0;
 					//PC <= 0;
-					br_tkn <= 0;
+					//br_tkn <= 0;
 					br_target <= 0;
 					state <= RI;
 				end
@@ -272,7 +283,7 @@ module gpu_core_1(
 					if (br_tkn)
 						begin
 							//PC <= br_target;
-							br_tkn <= 0;
+							//br_tkn <= 0;
 							IR_D <= ins_mem[br_target];
 							PC_D <= br_target;
 						end
@@ -434,7 +445,7 @@ module gpu_core_1(
 								if (A != 0)
 									begin
 										br_target<=IR_E[7:4];
-										br_tkn <= 1;
+										//br_tkn <= 1;
 									end
 							end 
 					endcase  
