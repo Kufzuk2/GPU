@@ -334,7 +334,7 @@ end
 			if (reset) 
 				begin
 					//i <= 0;
-					counter_ri <=0;
+			//		counter_ri <=0;
 					//PC <= 0;
 					//br_tkn <= 0;
 					//br_target <= 0;
@@ -342,7 +342,25 @@ end
 				end
 		end	
 	
-		
+	always @(posedge clk) begin
+	    if (reset) 
+	        counter_ri <= 0;
+        else if (state == RI) begin
+            if (val_R0)
+	            counter_ri <= counter_ri + 2;
+            
+            else if (val_ins)
+                counter_ri <= 16;
+			
+            else if ((i == 16) & (counter_ri == 16))
+                counter_ri <= 0;
+            else 
+                counter_ri <= counter_ri;
+        end else
+            counter_ri <= counter_ri;
+    end
+
+
 	always @(posedge clk)
 		begin 
 			if (!(reset)&&(state==F)) 
@@ -409,12 +427,12 @@ end
 								begin 
 									RF[0] <= instruction[7:0];
 								end	
-							counter_ri = counter_ri+2;
+							//counter_ri <= counter_ri+2;
 						end
 					if (val_ins) 
 						begin
 							ready <=0;
-							counter_ri <= 16;
+							//counter_ri <= 16;
 							ins_mem[i] <= instruction;
 							//i <= i + 1;
 						end
@@ -424,7 +442,7 @@ end
 						begin 
 							//state <=F;
 							//i <= 0;
-							counter_ri <= 0;
+							//counter_ri <= 0;
 							rtr <= 0;
 						end
 					
