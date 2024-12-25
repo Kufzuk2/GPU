@@ -331,13 +331,25 @@ end
 									RF[0] <= instruction[7:0];
 								end	
 						end
-					if (val_ins) 
+			/*		if (val_ins) 
 						begin
 							ins_mem[i] <= instruction;
 						end
 					else ins_mem[i]<=ins_mem[i];
-				end
+				end*/
+            end
 		end
+
+
+    always @(posedge clk) begin
+        if (~reset & (state == RI)) begin
+            if (val_ins) 
+                ins_mem[i] <= instruction;
+
+            else 
+                ins_mem[i] <= ins_mem[i];
+        end
+    end
 
 
 
