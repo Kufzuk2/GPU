@@ -77,7 +77,7 @@ module new_ts
     
     genvar l;
     generate
-    for (l = 0; l < 16; l = l + 1) begin
+    for (l = 0; l < 16; l = l + 1) begin: gen_frames_block_1
         always @(posedge clk) begin
             if (reset)
                 frame[l] <= 0;
@@ -129,9 +129,9 @@ module new_ts
    
     genvar a;
     generate
-        for (a = 0; a < 16; a = a + 1)
+        for (a = 0; a < 16; a = a + 1) begin: gen_frames_block_2
             assign cur_frame[a] = frame[a];
-
+			end
     endgenerate
 
 

@@ -14,7 +14,7 @@ module gpu(
     output wire mem_lbn, // ASSIGN SRAM_LB_N
     output wire mem_ubn, // ASSIGN SRAM_UB_N
     // ????
-    output wire mem_cke, // ASSIGN DRAM_CKE
+    
 
 
     `ifdef FPGA_MODE
@@ -28,9 +28,9 @@ module gpu(
     output wire [7:0]  blue     , // ASSIGN VGA_B_[7:0]
 
     `endif
+	 output wire mem_cke // ASSIGN DRAM_CKE
 
-
-	input  wire [1024  - 1: 0][15: 0] data_frames_in //// sdram
+	//		input  wire [1024  - 1: 0][15: 0] data_frames_in //// sdram
 );
     wire [15 : 0] core_ready;
     wire [15 : 0] read;
