@@ -299,46 +299,36 @@ end
 							end
 				end
 		end	
-		
-    always @(posedge clk) 
-        begin
-          if (reset) 
-            begin
-              for (c = 0; c < 16; c=c+1 )
-                begin 
-                  RF[c] <= 0;
-                end
+
+	always @(posedge clk)  begin
+        if (reset) begin
+            for (c = 0; c < 16; c=c+1 )
+                RF[c] <= 0;
+        
+        end else if (state==RI) begin
+            
+            if ((val_mask_R0)&&(instruction[core_id]))
+                RF[0] <= 1;
+            
+            else 
+                RF[0] <= RF[0];		
+            
+            if (val_R0) begin
+                if(RF[0] && (counter_ri == core_id))
+                        RF[0] <= instruction[15:8];
+
+                if(RF[0] && (counter_ri == core_id-1))
+                        RF[0] <= instruction[7:0];
             end
         end
-
-	always @(posedge clk) 
-		begin
-			if (!(reset)&&(state==RI)) 
-				begin
-					if ((val_mask_R0)&&(instruction[core_id]))
-						begin
-							RF[0] <= 1;
-						end
-					else RF[0] <= RF[0];		
-					if (val_R0)
-						begin
-							if(RF[0] && (counter_ri == core_id))
-								begin 
-									RF[0] <= instruction[15:8];
-								end
-							if(RF[0] && (counter_ri == core_id-1))
-								begin 
-									RF[0] <= instruction[7:0];
-								end	
-						end
-			/*		if (val_ins) 
-						begin
-							ins_mem[i] <= instruction;
-						end
-					else ins_mem[i]<=ins_mem[i];
-				end*/
-            end
-		end
+        else if (state==WB) begin
+            if((IR_M[15:12]<11) || (IR_M[15:12]==12))
+                    RF[IR_WB[3:0]]<= O_WB; 
+                
+            if(IR_M[15:12]==11)
+                RF[IR_WB[3:0]]<= D_WB;
+        end
+	end
 
 
     always @(posedge clk) begin
@@ -369,21 +359,8 @@ end
 				end
 		end	
 	
-    always @(posedge clk)
-		begin 
-			if (!(reset)&&(state==WB)) 
-				begin
-					if((IR_M[15:12]<11) || (IR_M[15:12]==12))
-						begin
-							RF[IR_WB[3:0]]<= O_WB;
-						end
-					if(IR_M[15:12]==11)
-						begin
-							RF[IR_WB[3:0]]<= D_WB;
-						end
-				end
-		end	
-		
+
+
 	always @(posedge clk)
 		begin 
 			if (!(reset)&&(state==E)) 
