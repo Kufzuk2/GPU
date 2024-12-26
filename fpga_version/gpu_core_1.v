@@ -448,21 +448,23 @@ end
 					
 					if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
 						begin
-							O_WB[7:0] <= O_M;
+							//O_WB[7:0] <= O_M;
 						end
 				end
 		end	
-	always @(posedge clk)
-		begin 
-			if (!(reset)&&(state==M_W)) 
-				begin
-					if((val_data)&&IR_M[15:12]==11)
-						begin
-							D_WB[7:0] <= mem_dat;
-							O_WB[7:0] <= O_M;
-						end
-				end	
-		end
+
+	always @(posedge clk) begin 
+        if (!(reset) & (state==M_W)) begin
+            if((val_data) & IR_M[15:12]==11) begin
+                    D_WB[7:0] <= mem_dat;
+                    O_WB[7:0] <= O_M;
+            end
+        end	
+        else if (!(reset) & (state==M)) begin
+            if(IR_M[15:12]!=11 && IR_M[15:12]!=13)
+                O_WB[7:0] <= O_M;
+        end
+	end
 	
 	
 endmodule
