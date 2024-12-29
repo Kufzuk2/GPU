@@ -40,7 +40,10 @@ module gpu(
 
     wire [191:0] addr_in;
     wire [127:0] data_in;
-    wire [127:0] data_out;
+    wire [127:0] data_out_to_core;
+
+    wire [127:0] data_out_fr_bank [15:0];
+    wire [127:0] data_out_res     [15:0];
 
     wire [15:0] gpu_core_reading;
     wire        final_core_reading;
@@ -95,6 +98,19 @@ assign finish = finish_array[ 0] |  finish_array[ 1] |  finish_array[ 2] | finis
 
 genvar i;
 
+//------------------------------------------------------------------------------------------------------------//
+assign data_out_res[0] = data_out_fr_bank[0];
+
+generate
+        for(i = 1; i < 16; i = i + 1) begin: gen_data_out_res
+                assign data_out_res[i[3:0]] = data_out_res[i[3:0]] | data_out_fr_bank[i[3:0]];
+        end
+endgenerate
+
+assign data_out_to_core = data_out_res[15];
+//------------------------------------------------------------------------------------------------------------//
+
+
 generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_cores
 		gpu_core_1 gpu_core_i ( 
@@ -107,7 +123,7 @@ generate
 				       	.val_data(finish[i]), 
 					.instruction(instruction),
 				       	.addr_shared_memory(addr_in[11 + 12 * i[3:0] : 12 * i[3:0]]), 
-					.mem_dat(data_out[7 + 8 * i[3:0] : 8 *  i[3:0]]),  .mem_dat_st(data_in[7 + 8 * i : 8 * i]),
+					.mem_dat(data_out_to_core[7 + 8 * i[3:0] : 8 *  i[3:0]]),  .mem_dat_st(data_in[7 + 8 * i[3:0] : 8 * i[3:0]]),
 					.core_id(i[3:0]),
 				       	.rtr(gpu_core_reading[i[3:0]]),
 				       	.mem_req_ld(read[i[3:0]]), 
@@ -133,7 +149,7 @@ generate
 					.data_vga(data_vga[7 + 8 * i[3:0] : 8 * i[3:0]]),
 					`endif
 
-                     			.data_out(data_out                   ),
+                     			.data_out(data_out_fr_bank[i]                   ),
 				       	.finish(finish_array[i]              )
         	);
 
