@@ -45,7 +45,9 @@ round_robin round_robin (
 				.clock    (clock       ), 
 				.reset    (reset       ), 
 				.core_serv(core_serv   ), 
-				.core_val (read | write), 
+				.core_val (read | write),
+			        .bank_addr(addr_in     ),
+				.bank_num (bank_n      ),	
 				.core_cnt (sel_core    )
 );
 
@@ -109,7 +111,7 @@ generate
 endgenerate
 
 // define general finish signal for cores
-always @(posedge clock or posedge bank_finish) begin
+always @(posedge clock) begin
 	if(reset)
 		finish <= 16'b0;
 	else if(bank_finish)
