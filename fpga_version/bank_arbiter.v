@@ -109,7 +109,7 @@ generate
 endgenerate
 
 // define general finish signal for cores
-always @(posedge clock or posedge bank_finish) begin
+always @(posedge clock) begin
 	if(reset)
 		finish <= 16'b0;
 	else if(bank_finish)

@@ -1,0 +1,77 @@
+------------------------------------------------------------
+Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1200mV 85C Model Setup 'clk'
+Slack : -14.920
+TNS   : -503064.050
+
+Type  : Slow 1200mV 85C Model Setup 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -2.734
+TNS   : -102.154
+
+Type  : Slow 1200mV 85C Model Hold 'clk'
+Slack : 0.379
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : 0.429
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'clk'
+Slack : -3.000
+TNS   : -57372.484
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -1.285
+TNS   : -51.400
+
+Type  : Slow 1200mV 0C Model Setup 'clk'
+Slack : -13.297
+TNS   : -459068.437
+
+Type  : Slow 1200mV 0C Model Setup 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -2.561
+TNS   : -94.496
+
+Type  : Slow 1200mV 0C Model Hold 'clk'
+Slack : 0.337
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : 0.388
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'clk'
+Slack : -3.000
+TNS   : -57366.324
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -1.285
+TNS   : -51.400
+
+Type  : Fast 1200mV 0C Model Setup 'clk'
+Slack : -7.160
+TNS   : -242464.612
+
+Type  : Fast 1200mV 0C Model Setup 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -1.053
+TNS   : -36.353
+
+Type  : Fast 1200mV 0C Model Hold 'clk'
+Slack : 0.158
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : 0.189
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'clk'
+Slack : -3.000
+TNS   : -47916.233
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'vga:vga|vga_sync:vga_sync_unit|pixel_reg'
+Slack : -1.000
+TNS   : -40.000
+
+------------------------------------------------------------

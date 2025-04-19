@@ -6,8 +6,6 @@
     `include "sched_def.v"
 `endif    
 
-`include "load_asm.v"
-
 
 //TODO     send r0 data + core and r0 mask
 // move waiting earlier
@@ -41,9 +39,11 @@ module scheduler
 //   input  wire [DATA_DEPTH  - 1: 0][INSTR_SIZE - 1: 0] data_frames_in,
 );
 
-    wire [INSTR_NUM  - 1: 0] [INSTR_SIZE - 1: 0] data_frames /* [DATA_DEPTH - 1: 0]*/ ;   // better change type of memory later
+	wire [INSTR_SIZE - 1: 0] /*[INSTR_SIZE - 1: 0]*/ data_frames  [INSTR_NUM - 1: 0];   // better change type of memory later
     wire [INSTR_SIZE - 1: 0]  cur_frame  [FRAME_SIZE - 1: 0];
 
+
+    wire [INSTR_NUM * INSTR_SIZE - 1: 0] line_data;
 
 
     load_asm 
@@ -54,10 +54,18 @@ module scheduler
     )
     load_asm
     (
-        .clk            (        clk),
-        .rst            (      reset),
-        .data_frames_in (data_frames)
+        .clk              (      clk),
+        .rst              (    reset),
+        .data_frames_line (line_data)
     );
+    
+    genvar b;
+    generate
+        for (b = 0; b < INSTR_NUM; b = b + 1) begin: data_line_norm_view
+            assign data_frames[b] = line_data[INSTR_SIZE * (b + 1) - 1: INSTR_SIZE * b];
+        end
+    endgenerate
+
 
     wire   prog_loading;
     assign prog_loading = reset;
@@ -95,9 +103,9 @@ module scheduler
    
     genvar a;
     generate
-        for (a = 0; a < FRAME_SIZE; a = a + 1)
+        for (a = 0; a < FRAME_SIZE; a = a + 1) begin: data_assign
             assign cur_frame[a] = data_frames[{global_tp[9: 4], 4'h0} + a];
-
+		  end
     endgenerate
 
 
@@ -121,7 +129,7 @@ module scheduler
            fence <= 0;
 
         else begin
-            fence <= (!prog_loading & if_num == 0 & global_tp[3: 0] == 0) ?
+            fence <= (!prog_loading & (if_num == 0) & global_tp[3: 0] == 0) ?
             fence_w  :  fence;        
             `ifdef TR
                 $display("fence  ");

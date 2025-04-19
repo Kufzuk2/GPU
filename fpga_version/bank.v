@@ -1,5 +1,4 @@
 `define FPGA_MODE
-`define SIMUL_MODE
 
 module bank (
 	input   wire        clock   ,

@@ -8,15 +8,15 @@ module load_asm
     input wire clk,
     input wire rst,
 
-    output wire [INSTR_NUM - 1: 0][INSTR_SIZE - 1: 0] data_frames_in
+    output wire [INSTR_NUM * INSTR_SIZE - 1: 0] data_frames_line
 );
     reg [INSTR_SIZE - 1: 0] data_frames [INSTR_NUM - 1: 0];
-
+    
 
     genvar a;
     generate
         for (a = 0; a < INSTR_NUM; a = a + 1) begin : data_assign
-            assign data_frames_in[a] = data_frames[a];
+            assign data_frames_line [INSTR_SIZE * (a + 1) - 1: INSTR_SIZE * a] = data_frames[a];
         end
     endgenerate
 
