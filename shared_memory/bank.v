@@ -27,11 +27,11 @@ end
 always @(posedge clock) begin
 	casex(read)
 		1'b0:
-			data_out <= 8'hx;
+			data_out <= 8'b0;
 		1'b1:
 			data_out <= mem[addr_in];
 		default:
-			data_out <= 8'hx;
+			data_out <= 8'b0;
 	endcase
 end
 

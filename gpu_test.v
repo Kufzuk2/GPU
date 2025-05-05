@@ -93,7 +93,7 @@ module gpu_test;
         reset = 0;
         #10;
 
-        for (i = 224; i < 1024; i = i + 1) begin
+        for (i = 288; i < 1024; i = i + 1) begin
             data_frames_in[i] = 0;
         end
         #20;

@@ -22,6 +22,8 @@ module gpu_core_1(
 	parameter [3:0] RI = 0,F = 1, D = 2, E = 3, M = 4, M_W = 5, WB = 6, NA = 7;
 	//reg [3:0] state = RI;
 	reg [3:0] state;
+
+	integer c;
 	
 	// Internal registers
 	reg [7:0] RF [0:15]; // Register File
@@ -112,7 +114,7 @@ module gpu_core_1(
         begin
           if (reset) 
             begin
-              for (integer c = 0; c < 16; c=c+1 )
+              for (c = 0; c < 16; c=c+1 )
                 begin 
                   RF[c] <= 0;
                 end

@@ -180,7 +180,7 @@ endgenerate
 
 vga vga (
 		.clock      (clk               ),
-		.reset      (reset             ),
+		.reset      (~reset            ),
 		.data       (data_vga_mux[15]  ),
 		.hsync      (hsync             ),
 		.vsync      (vsync             ),

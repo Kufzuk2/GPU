@@ -60,8 +60,8 @@ assign b_write = core_serv ? write[sel_core] : 1'b0;
 
 // input and addr_cor multiplexers
 assign addr_cor_mux[0] = sel_core == 0 ? (addr_in [11:8] == bank_n) : 1'b0;
-assign addr_in_mux [0] = sel_core == 0 ?  addr_in [ 7:0]            : 8'hx;
-assign data_in_mux [0] = sel_core == 0 ?  data_in [ 7:0]            : 8'hx;
+assign addr_in_mux [0] = sel_core == 0 ?  addr_in [ 7:0]            : 8'b0;
+assign data_in_mux [0] = sel_core == 0 ?  data_in [ 7:0]            : 8'b0;
 
 genvar i;
 
@@ -83,13 +83,13 @@ assign b_data_in = data_in_mux [15];
 generate
 	for(i = 0; i < 16; i = i + 1) begin: gen_output_mux
 		always @(posedge clock) begin
-			data_out[7 + i[3:0] * 8 : 0 + i[3:0] * 8] <= sel_core == i[3:0] ? b_data_out : 8'hx;
+			data_out[7 + i[3:0] * 8 : 0 + i[3:0] * 8] <= sel_core == i[3:0] ? b_data_out : 8'b0;
 		end
 	end
 endgenerate
 
 // define general finish signal for cores
-always @(posedge clock or posedge bank_finish) begin
+always @(posedge clock) begin
 	if(reset)
 		finish <= 16'b0;
 	else if(bank_finish)
