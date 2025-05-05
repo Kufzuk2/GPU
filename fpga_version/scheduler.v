@@ -17,7 +17,7 @@ module scheduler
     parameter CTRL_DATA_SIZE  =   48,  
     parameter     INSTR_SIZE  =   16,
     parameter     FRAME_SIZE  =   16,
-    parameter      INSTR_NUM  =  224,
+    parameter      INSTR_NUM  =  288,
     parameter      FRAME_NUM  =   64,
     parameter       CORE_NUM  =   16,
     parameter    BUS_TO_CORE  =   16,

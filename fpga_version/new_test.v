@@ -92,7 +92,7 @@ module new_test;
     initial begin 
 		$dumpfile("dump.vcd"); $dumpvars(0, new_test);
         #10;
-        for (i = 224; i < 1024; i = i + 1) begin
+        for (i = 288; i < 1024; i = i + 1) begin
             data_frames_in[i] = 0;
         end
     end
