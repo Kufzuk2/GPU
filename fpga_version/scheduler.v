@@ -29,6 +29,10 @@ module scheduler
     input  wire reset,
     input  wire [15: 0] core_reading,
     input  wire [CORE_NUM    - 1: 0]   core_ready,  // may be better reverse it
+
+    input  wire  repeat_frame,
+    input  wire end_repeating,
+
     output  reg [BUS_TO_CORE - 1: 0] mess_to_core,  //
 
     output reg         r0_loading,
@@ -259,6 +263,16 @@ module scheduler
     end    
     
 
+
+wire     if_frame_end;
+wire   core_collision;
+wire         cf_start;
+
+assign core_collision = (last_mask & exec_mask != 0);
+
+assign if_frame_end   = (if_num == 1) && (global_tp[3: 0] == 4'hf);
+assign cf_start       = (if_num == 0) && (global_tp[3: 0] ==    0);
+
 /// global_tp  reg  logic
     always @(posedge clk) begin
         if (reset)
@@ -268,13 +282,26 @@ module scheduler
             global_tp <= global_tp + 10'h6;  //step over empty space
         
         else if (~end_prog & write_en & (if_num != 0 | global_tp[3: 0] != 2)
-                 & !(if_num == 1 & global_tp[3: 0] == 4'hf & wait_it & (last_mask & exec_mask != 0))
-                 & ( if_num == 0 & global_tp[3: 0] == 0 & no_wait_cf | if_num != 0 | global_tp[3: 0] != 0 )) 
+
+                 &&   !(if_frame_end && wait_it       && core_collision )
+                 && ( !(if_frame_end && repeat_fence) || finish_needed  )   /// new line to be checked
+                 &&  
+                 (cf_start     && no_wait_cf 
+                 ||  if_num != 0 
+                 ||  global_tp[3: 0] != 0 )) 
+
             global_tp <= global_tp + `SCHED_MSG_BUS_WIDTH; // step over 1 msg
 
+        else if (!prog_loading && if_frame_end && repeat_fence && repeat_en)
+            global_tp <= global_tp - 4'hf;
         else 
             global_tp <= global_tp;
     end // must work as for r0 load as for instr mes
+
+
+
+wire   if_end_no_wait;
+assign if_end_no_wait = (!(wait_it & core_collision) && (!(if_frame_end && repeat_fence) || finish_needed) );
 
 
 /// if_num  reg  logic
@@ -284,7 +311,7 @@ module scheduler
 
         end else if (!prog_loading & if_num != 0 
                       & global_tp[3: 0] == 4'b1111 
-                      & (if_num != 1  | !(wait_it & (last_mask & exec_mask != 0)))) begin  // must be 0000, but not enough time then
+                      & (if_num != 1 || if_end_no_wait)) begin  // must be 0000, but not enough time then
             if_num <= if_num - 1;
 
         end else if (!prog_loading & if_num == 0 & global_tp[3: 0] == 4'b1111)
@@ -306,6 +333,74 @@ module scheduler
             cur_frame[0] & `SCHED_IFNUM_MASK                                    :
             next_if_num                                                         ;
     end
+
+
+
+//////////////////////////////
+///  repeat/wait controll  ///
+//////////////////////////////
+
+    reg        wait_repeat;
+    reg      repeat_needed;
+    wire fence_load_moment;
+    wire      repeat_fence;
+    wire         repeat_en;
+
+    assign fence_load_moment = (if_num == 0) && (global_tp[3: 0] == 1);
+    assign repeat_fence      = (fence == 1`SCHED_FENCE_REPEAT);
+
+assign repeat_en = !prog_loading && if_frame_end && repeat_needed && (last_mask & exec_mask != 0);
+
+    always @(posedge clk) begin
+        if (reset)
+            wait_repeat <= 0;
+            
+        else if (!prog_loading && fence_load_moment && repeat_fence)
+            wait_repeat <= 1;
+
+        else if (repeat_en)
+            wait_repeat <= 0;
+
+        else
+            wait_repeat <= wait_repeat;
+    end
+
+
+    always @(posedge clk) begin
+        if (reset)
+            repeat_needed <= 0;
+
+        else if (!prog_loading && repeat_frame)
+            repeat_needed <= 1;
+
+        else if (repeat_en)
+            repeat_needed <= 0;
+
+        else
+            repeat_needed <= repeat_needed;
+    end
+
+/// finish of repea logic
+
+reg finish_needed;
+
+    always @(posedge clk) begin
+        if (reset)
+            finish_needed <= 0;
+
+        else if (!prog_loading && end_repeating)
+            finish_needed <= 1;
+
+        else if (!prog_loading &&if_frame_end)
+            repeat_needed <= 0;
+
+        else
+            repeat_needed <= repeat_needed;
+    end
+
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 
 
 

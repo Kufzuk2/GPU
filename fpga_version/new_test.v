@@ -20,6 +20,8 @@ module new_test;
     reg  [15: 0]               data_input;
     wire [19: 0]               input_addr;
 
+    reg repeat_frame ;
+    reg end_repeating;
 
 
 /// for outfiles
@@ -59,10 +61,14 @@ module new_test;
 
 
     initial begin
-        clk          <= 0;
-        KEY0         <= 1;
+        clk           <= 0;
+        KEY0          <= 1;
+        repeat_frame  <= 0;    
+        end_repeating <= 0;    
     end
 
+
+/*
     initial begin
         // Открываем входной файл
         infile = $fopen("src_data/bin_shader.bin", "r");
@@ -86,7 +92,7 @@ module new_test;
         // Закрываем файл
         $fclose(infile);
         $display("Данные успешно загружены.");
-    end
+    end*/
 	
 
     initial begin 
@@ -137,6 +143,10 @@ module new_test;
 
 
         #40500;
+
+
+
+
         KEY0 = 0;
         #1;
         KEY0 = 1;

@@ -31,6 +31,10 @@ module gpu(
 
     `endif
 
+    input  wire  repeat_frame,
+    input  wire end_repeating,
+
+
 	input wire clk,  // ASSIGN CLOCK_50
  	input wire KEY0 // ASSIGN KEY_0
 
@@ -114,7 +118,7 @@ assign finish = finish_array[ 0] |
                 finish_array[12] | 
                 finish_array[13] | 
                 finish_array[14] | 
-                finish_array[15] ; 
+                finish_array[15] ;  /// |finish_array ?????
 
 genvar i;
 
@@ -214,6 +218,8 @@ new_ts gpu_scheduler
 scheduler gpu_scheduler 
                     ( .clk              (clk              ), 
                       .reset            (reset            ),
+                      .repeat_frame     (repeat_frame     ),
+                      .end_repeating    (end_repeating    ),
                       .instr_loading    (val_ins          ),
                       .r0_mask_loading  (r0_mask_loading  ),
                       .core_mask_loading(core_mask_loading),
