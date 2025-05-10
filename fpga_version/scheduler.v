@@ -230,15 +230,34 @@ module scheduler
             1: 0;
     end    
 
+
+//////////////////////////////////
     //instr_loading flag reg logic
+    wire   val_ins_end;
+    reg    val_ins_end_ff;
+
+    assign val_ins_end = (if_frame_end && !if_end_no_wait);
+
+    
+    always @(posedge clk) begin
+        if (reset)
+            val_ins_end_ff <= 0;
+        else
+            val_ins_end_ff <= val_ins_end;
+    end
+
     
     always @(posedge clk) begin
         if (reset)
             instr_loading <= 0;
         else
-            instr_loading <= (write_en & if_num != 0) ?
+            instr_loading <= (write_en & if_num != 0) && (!val_ins_end_ff || !val_ins_end) ?   // || ifnum[] == 0??????
             1: 0;
     end    
+// instr_loading <= (write_en & if_num != 0) ? 1: 0;
+// assign write_en = !prog_loading & (((core_reading & last_mask) == last_mask) | last_mask == 0);
+
+
 
 //r0_mask_loading flag reg logic
     
@@ -264,13 +283,23 @@ module scheduler
     
 
 
-wire     if_frame_end;
+wire   if_frame_end;
+reg    if_end_no_wait_ff;
+assign if_frame_end   = (if_num == 1) && (global_tp[3: 0] == 4'hf);
+
+always @(posedge clk) begin
+    if (reset)
+        if_end_no_wait_ff <= 0;
+    else 
+        if_end_no_wait_ff <= if_end_no_wait;
+end
+
+
 wire   core_collision;
 wire         cf_start;
 
 assign core_collision = (last_mask & exec_mask != 0);
 
-assign if_frame_end   = (if_num == 1) && (global_tp[3: 0] == 4'hf);
 assign cf_start       = (if_num == 0) && (global_tp[3: 0] ==    0);
 
 /// global_tp  reg  logic
@@ -349,7 +378,7 @@ assign if_end_no_wait = (!(wait_it & core_collision) && (!(if_frame_end && repea
     assign fence_load_moment = (if_num == 0) && (global_tp[3: 0] == 1);
     assign repeat_fence      = (fence == 1`SCHED_FENCE_REPEAT);
 
-assign repeat_en = !prog_loading && if_frame_end && repeat_needed && (last_mask & exec_mask != 0);
+assign repeat_en = !prog_loading && if_frame_end && repeat_needed && !(last_mask & exec_mask != 0);
 
     always @(posedge clk) begin
         if (reset)
@@ -392,10 +421,10 @@ reg finish_needed;
             finish_needed <= 1;
 
         else if (!prog_loading &&if_frame_end)
-            repeat_needed <= 0;
+            finish_needed <= 0;
 
         else
-            repeat_needed <= repeat_needed;
+            finish_needed <= finish_needed;
     end
 
 

@@ -53,10 +53,14 @@ module new_test;
 
 
     gpu gpu (
-             .clk        (       clk ),
-             .KEY0       (      KEY0 ),
-             .data_input ( data_input),
-             .input_addr ( input_addr)
+             .clk           (          clk ),
+             .KEY0          (         KEY0 ),
+
+             .repeat_frame  ( repeat_frame ),
+             .end_repeating ( end_repeating),
+             
+             .data_input    (    data_input),
+             .input_addr    (    input_addr)
     );
 
 
@@ -142,10 +146,31 @@ module new_test;
         #450;
 
 
-        #40500;
+        #35500;
+    repeat_frame <= 1;
+    #2;
+    repeat_frame <= 0;
 
+    #10000; 
+       repeat_frame <= 1;
+    #2;
+    repeat_frame <= 0;
 
+    #57000;
+   repeat_frame <= 1;
+    #2;
+    repeat_frame <= 0;
 
+   #57000;
+   repeat_frame <= 1;
+    #2;
+    repeat_frame <= 0;
+
+    #17000;
+    end_repeating <= 1;
+    #2;
+    end_repeating <= 0;
+    #77000;
 
         KEY0 = 0;
         #1;

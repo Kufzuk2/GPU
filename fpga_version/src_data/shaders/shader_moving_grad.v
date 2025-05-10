@@ -299,8 +299,8 @@ NOP 12'h0
 NOP 12'h0
 READY 12'h0
 
-
-12'h0 4'h1
+#must be repeat barrier 
+4'h0 2'h3 6'h1
 16'hffff
 16'hffff
 16'h0
@@ -334,7 +334,7 @@ BNZ R8 4'h1 4'h0
 LD  R3  R15 R5  
 ADD R5  R9  R6   
 ST  R3  R15 R6
-NOP 12'h0
+ADD R15 R12 R15
 NOP 12'h0
 NOP 12'h0
 NOP 12'h0
