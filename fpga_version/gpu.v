@@ -190,6 +190,8 @@ vga vga (
 		.vsync      (vsync             ),
 		.blank      (blank             ),
 		.vga_clock  (pixel_clk         ),
+		.rep_frame  (repeat_frame      ),
+		.end_frame  (end_repeating     ),
 		.addr       (addr_vga          ),
 		.rgb        ({red, green, blue})
 
